@@ -1,34 +1,36 @@
+#pragma once
+
 #include <ncurses.h>
 
 #include "TESIX_File.h"
+#include "TESIX_Window.h"
 
-class TESIX_FileWindow{
+// Displays the file view
+class TESIX_FileWindow : public TESIX_Window{
     public:
-    TESIX_FileWindow(WINDOW* win);
+    TESIX_FileWindow(uint32_t width, uint32_t height, uint32_t x, uint32_t y);
     ~TESIX_FileWindow();
-    public:
-    uint top;
-
     public:
     void SetFile(TESIX_File* file);
 
-    void SetCur(TESIX_Location loc);
-    TESIX_Location GetCur();
+    virtual void Action(TESIX_KeyPress key);
 
-    void Update();
+    void UpdateView();
+
+    public:
 
     private:
-    WINDOW* win;
-    uint width;
-    uint height;
-    uint x;
-    uint y;
+    TESIX_File* file;
 
     TESIX_Location cur;
 
-    TESIX_File* file;
+    uint32_t top;
+    uint32_t left;
 
     private:
     void PrintLine(uint line, uint y);
 
+    void SetCur(TESIX_Location loc);
+    void SetCur(uint32_t line, uint32_t col);
+    void MoveCur(uint32_t line, uint32_t col);
 };

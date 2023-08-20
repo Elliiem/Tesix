@@ -5,8 +5,7 @@ TESIX_File::TESIX_File(){
 
 }
 
-TESIX_File::TESIX_File(std::string &filename) : file(filename)
-{
+TESIX_File::TESIX_File(std::string &filename) : file(filename){
     this->filename = filename;
 
     if(!file.is_open()) throw std::runtime_error("File is not open! << TESIX_File::TESIX_File(std::string& filename)");
@@ -73,20 +72,17 @@ void TESIX_File::DelCh(TESIX_Location loc){
 
 
 void TESIX_File::AddStr(TESIX_Location loc, std::string& str){
-    CheckBounds(loc.line, loc.col - 1);
+    if(loc.col != 0)CheckBounds(loc.line, loc.col - 1);
     if(loc.col == lines[loc.line].length()) lines[loc.line].append(str);
     else lines[loc.line].insert(loc.col, str);
 }
 
 
 void TESIX_File::DelSel(TESIX_Selection selection){
-    CheckBounds(selection.start.line, selection.start.col);
-    CheckBounds(selection.end.line, selection.end.col);
-
     if(selection.IsMultiline()){
-        // Delete first line
+        // Delete the part of the first line in the selection
         lines[selection.start.line].erase(selection.start.col, lines[selection.start.line].length());
-        // Delete line from lines if empty
+        // Delete first line from lines if its empty
         if(lines[selection.start.line].empty()){
             DelLine(selection.start.line);
         }
@@ -96,14 +92,19 @@ void TESIX_File::DelSel(TESIX_Selection selection){
         // Delete that amount of lines
         DelLines(selection.start.line, inbtw);
 
-        // Delete last line
-        lines[selection.start.line].erase(0, selection.end.col);
-        //Delete line if empty
+        // Delete the part of the first line in the selection
+        lines[selection.end.line - inbtw - 1].erase(0, selection.end.col + 1);
+        //Delete last line if its empty
         if(lines[selection.end.line].empty()){
             DelLine(selection.end.line);
         }
     } else {
-        lines[selection.start.line].erase(selection.start.col, selection.end.col);
+        // Delete the part in the selection
+        lines[selection.start.line].erase(selection.start.col, selection.end.col + 1);
+        // and delete the line if the line is empty as a result
+        if(lines[selection.start.line].empty()) {
+            DelLine(selection.start.line);
+        }
     }
 
 }
@@ -147,21 +148,36 @@ std::string TESIX_File::GetLine(int line){
     else return lines[line];
 }
 
+std::vector<std::string> TESIX_File::GetSel(TESIX_Selection sel){
+    std::vector<std::string> ret;
 
-int TESIX_File::GetLen(){
+    if(sel.IsMultiline()){
+        ret.push_back(lines[sel.start.line].substr(sel.start.col, lines[sel.start.line].length() - sel.start.col));
+        for(int i = 1;i < sel.end.line - sel.start.line; i++){
+            ret.push_back(lines[sel.start.line + i]);
+        }
+        ret.push_back(lines[sel.end.line].substr(0, sel.end.col + 1));
+    } else {
+        ret.push_back(lines[sel.start.line].substr(sel.start.col, sel.end.col - sel.start.col + 1));
+    }
+
+    return ret;
+}
+
+int TESIX_File::Len(){
     return lines.size();
 }
 
 
-int TESIX_File::GetLineLen(int line){
-    if(line >= lines.size()) return -1;
+int TESIX_File::LineLen(int line){
+    if(line >= lines.size() || line < 0) return 0;
     return lines[line].length();
 }
 
 
 void TESIX_File::CheckBounds(int line, int col){
-    if(line >= lines.size())
+    if(line >= lines.size() || line < 0)
         throw std::runtime_error("Line is out of bounds! << TESIX_File::CheckBounds");
-    else if (col >= lines[line].length() && col != 0) 
+    else if (((col >= lines[line].length() || col < 0) && col != 0)) 
         throw std::runtime_error("Column is ot of bounds! << TESIX_File::CheckBounds");
 }

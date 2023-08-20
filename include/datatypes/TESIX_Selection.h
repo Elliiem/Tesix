@@ -1,3 +1,5 @@
+#pragma once
+
 #include "TESIX_Location.h"
 
 struct TESIX_Selection{

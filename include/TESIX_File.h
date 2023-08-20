@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -32,15 +34,16 @@ class TESIX_File{
     int Spacing(int line, int space);
 
     std::string GetLine(int line);
-    int GetLen();
-    int GetLineLen(int line);
+    std::vector<std::string> GetSel(TESIX_Selection sel);
+    int Len();
+    int LineLen(int line);
 
     private:
     std::fstream file;
     std::string filename;
 
     std::vector<std::string> lines;
-    
+
     private:
     void CheckBounds(int line, int col);
 
