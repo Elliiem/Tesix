@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.5)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(tesix)
 
 find_package(Curses REQUIRED)
 include_directories(${CURSES_INCLUDE_DIR})
+
+find_package(Clang REQUIRED)
 
 add_executable(tesix
 ./main.cpp
@@ -24,4 +26,7 @@ target_include_directories(tesix PUBLIC
 ./include/datatypes
 )
 
-target_link_libraries(tesix ${CURSES_LIBRARIES})
+target_link_libraries(tesix 
+${CURSES_LIBRARIES}
+clang
+)

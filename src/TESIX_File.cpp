@@ -10,10 +10,7 @@ TESIX_File::TESIX_File(std::string &filename) : file(filename){
 
     if(!file.is_open()) throw std::runtime_error("File is not open! << TESIX_File::TESIX_File(std::string& filename)");
 
-    std::string line;
-    while(getline(file, line)){
-        lines.push_back(line);
-    }
+    Load(filename);
 }
 
 TESIX_File::~TESIX_File(){
@@ -44,6 +41,8 @@ void TESIX_File::Load(std::string& filename){
     while(getline(file, line)){
         lines.push_back(line);
     }
+
+    if(lines.size() == 0) lines.push_back(std::string(""));
 }
 
 
@@ -53,32 +52,49 @@ void TESIX_File::Clear(){
 
 
 void TESIX_File::SetCh(TESIX_Location loc, char ch){
-    CheckBounds(loc.line, loc.col);
+    BoundsError(CheckBounds(loc.line, loc.col), "TESIX_File::SetCh");
+
     lines[loc.line][loc.col] = ch;
 }
 
 
 void TESIX_File::AddCh(TESIX_Location loc, char ch){
-    CheckBounds(loc.line, loc.col - 1);
-    if(loc.col == lines[loc.line].length()) lines[loc.line].append(std::string(1, ch));
+    int32_t err = CheckBounds(loc.line, loc.col, true);
+    uint32_t line_len = LineLen(loc.line);
+
+    if(err == -2 && loc.col == line_len) err = 0;
+
+    BoundsError(err, "TESIX_File::AddCh");
+
+    if(loc.col == line_len) lines[loc.line].append(std::string(1, ch));
     else lines[loc.line].insert(loc.col, std::string(1, ch));    
 }
 
 
 void TESIX_File::DelCh(TESIX_Location loc){
-    CheckBounds(loc.line, loc.col);
+    BoundsError(CheckBounds(loc.line, loc.col), "TESIX_File::DelCh");
+
     lines[loc.line].erase(loc.col, 1);
 }
 
 
 void TESIX_File::AddStr(TESIX_Location loc, std::string& str){
-    if(loc.col != 0)CheckBounds(loc.line, loc.col - 1);
-    if(loc.col == lines[loc.line].length()) lines[loc.line].append(str);
+    int32_t err = CheckBounds(loc.line, loc.col, true);
+    uint32_t line_len = LineLen(loc.line);
+
+    if(err == -2 && loc.col == line_len) err = 0;
+
+    BoundsError(err, "TESIX_File::AddStr");
+
+    if(loc.col == line_len) lines[loc.line].append(str);
     else lines[loc.line].insert(loc.col, str);
 }
 
 
 void TESIX_File::DelSel(TESIX_Selection selection){
+    BoundsError(CheckBounds(selection.start.line, selection.start.col, true), "TESIX_File::DelSel");
+    BoundsError(CheckBounds(selection.end.line, selection.end.col, true), "TESIX_File::DelSel");
+    
     if(selection.IsMultiline()){
         // Delete the part of the first line in the selection
         lines[selection.start.line].erase(selection.start.col, lines[selection.start.line].length());
@@ -111,8 +127,14 @@ void TESIX_File::DelSel(TESIX_Selection selection){
 
 
 void TESIX_File::AddLine(int line){
-    CheckBounds(line, 0);
-    lines.insert(lines.begin() + line, std::string());
+    uint32_t err = CheckBounds(line, 0, true);
+
+    if(err == -1 && line == Len()) err = 0;
+
+    BoundsError(err, "TESIX_FILE::AddLine");
+
+    if(line == Len()) lines.push_back(std::string());
+    else lines.insert(lines.begin() + line, std::string());
 }
 
 
@@ -124,8 +146,8 @@ void TESIX_File::AddLines(int line, int count){
 
 
 void TESIX_File::DelLine(int line){
-    CheckBounds(line, 0);
-    lines.erase(lines.begin() + line);
+    BoundsError(CheckBounds(line, 0, true), "TESIX_File::DelLine");
+    if(Len() != 1) lines.erase(lines.begin() + line);
 }
 
 
@@ -137,7 +159,7 @@ void TESIX_File::DelLines(int line, int count){
 
 
 int TESIX_File::Spacing(int line, int space){
-    CheckBounds(line, 0);
+    BoundsError(CheckBounds(line, 0, true), "TESIX_File::Spacing");
     lines[line].resize(lines[line].length() + space, ' ');
     return lines[line].length();
 }
@@ -148,17 +170,20 @@ std::string TESIX_File::GetLine(int line){
     else return lines[line];
 }
 
-std::vector<std::string> TESIX_File::GetSel(TESIX_Selection sel){
+std::vector<std::string> TESIX_File::GetSel(TESIX_Selection selection){
     std::vector<std::string> ret;
 
-    if(sel.IsMultiline()){
-        ret.push_back(lines[sel.start.line].substr(sel.start.col, lines[sel.start.line].length() - sel.start.col));
-        for(int i = 1;i < sel.end.line - sel.start.line; i++){
-            ret.push_back(lines[sel.start.line + i]);
+    BoundsError(CheckBounds(selection.start.line, selection.start.col, true), "TESIX_File::GetSel");
+    BoundsError(CheckBounds(selection.end.line, selection.end.col, true), "TESIX_File::GetSel");
+
+    if(selection.IsMultiline()){
+        ret.push_back(lines[selection.start.line].substr(selection.start.col, lines[selection.start.line].length() - selection.start.col));
+        for(int i = 1;i < selection.end.line - selection.start.line; i++){
+            ret.push_back(lines[selection.start.line + i]);
         }
-        ret.push_back(lines[sel.end.line].substr(0, sel.end.col + 1));
+        ret.push_back(lines[selection.end.line].substr(0, selection.end.col + 1));
     } else {
-        ret.push_back(lines[sel.start.line].substr(sel.start.col, sel.end.col - sel.start.col + 1));
+        ret.push_back(lines[selection.start.line].substr(selection.start.col, selection.end.col - selection.start.col + 1));
     }
 
     return ret;
@@ -169,15 +194,41 @@ int TESIX_File::Len(){
 }
 
 
-int TESIX_File::LineLen(int line){
-    if(line >= lines.size() || line < 0) return 0;
+int TESIX_File::LineLen(uint32_t line){
+    if(line >= lines.size()) return 0;
     return lines[line].length();
 }
 
 
-void TESIX_File::CheckBounds(int line, int col){
-    if(line >= lines.size() || line < 0)
-        throw std::runtime_error("Line is out of bounds! << TESIX_File::CheckBounds");
-    else if (((col >= lines[line].length() || col < 0) && col != 0)) 
-        throw std::runtime_error("Column is ot of bounds! << TESIX_File::CheckBounds");
+int32_t TESIX_File::CheckBounds(uint32_t line, uint32_t col, bool zero_len_handler){
+    if(line >= lines.size()) return -1;
+
+    uint32_t line_len = lines[line].length();
+
+    if(zero_len_handler){ 
+        if (col >= line_len && !(line_len == 0 && col == 0)) return -2;
+    } else {
+        if (col >= line_len) return -2;
+    }
+
+    return 0;
+}
+
+
+void TESIX_File::BoundsError(int error, std::string from){
+    std::string error_msg(" is out of Bounds! << " + from);
+
+    switch (error){
+    case -1:
+        error_msg.insert(0, "Line");
+        throw std::runtime_error(error_msg);
+    break;
+
+    case -2:
+        error_msg.insert(0, "Column");
+        throw std::runtime_error(error_msg);
+    break;
+    }
+
+
 }

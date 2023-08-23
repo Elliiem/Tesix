@@ -3,6 +3,8 @@
 #include "TESIX_FileWindow.h"
 #include "TESIX_Editor.h"
 
+#define UINT_NEG_MIN 4000000000
+
 TESIX_FileWindow::TESIX_FileWindow(uint32_t width, uint32_t height, uint32_t x, uint32_t y) : TESIX_Window(width, height, x, y){
     top = 0;
     left = 0;
@@ -23,27 +25,19 @@ void TESIX_FileWindow::SetFile(TESIX_File* file){
 
 void TESIX_FileWindow::MoveCur(uint32_t line, uint32_t col){
     cur.line += line;
-    if(cur.line < 0) cur.line = 0;
+    if(cur.line > UINT_NEG_MIN) cur.line = 0;
     if(cur.line >= top + height){
         top += line;
-        UpdateView();
     }else if(cur.line < top){
         top += line;
-        UpdateView();
-    } else {
-        UpdateView();
     }
 
     cur.col += col;
-    if(cur.col < 0) cur.col = 0;
+    if(cur.col > UINT_NEG_MIN) cur.col = 0;
     if(cur.col < left){
         left += col;
-        UpdateView();
     }else if(cur.col + 6 >= left + width){
         left += col;
-        UpdateView();
-    } else {
-        UpdateView();
     }
 }
 
@@ -70,75 +64,87 @@ void TESIX_FileWindow::Action(TESIX_KeyPress key){
         if(cur.line < file->Len() - 1){
             if(cur.col > file->LineLen(cur.line + 1)) SetCur(TESIX_Location(cur.line + 1, file->LineLen(cur.line + 1)));
             else MoveCur(1, 0);
+            UpdateView();
         }
     } else if(key.key == "KEY_UP"){
         if(cur.col > file->LineLen(cur.line - 1)) SetCur(TESIX_Location(cur.line - 1, file->LineLen(cur.line - 1)));
         else MoveCur(-1, 0);
+        UpdateView();
     } else if(key.key == "KEY_LEFT"){
-        if(cur.col <= 0 && cur.line != 0) SetCur(TESIX_Location(cur.line - 1, file->LineLen(cur.line - 1) + 1));
-        MoveCur(0, -1);
+        if(cur.col <= 0 && cur.line != 0) SetCur(TESIX_Location(cur.line - 1, file->LineLen(cur.line - 1)));
+        else MoveCur(0, -1);
+        UpdateView();
     } else if(key.key == "KEY_RIGHT"){
-        if(cur.line < file->Len() - 1){
-            if(cur.col + 1 > file->LineLen(cur.line)) SetCur(TESIX_Location(cur.line + 1, 0));
-            else MoveCur(0, 1);
-        }
+        if(cur.col >= file->LineLen(cur.line) && cur.line < file->Len() - 1) SetCur(TESIX_Location(cur.line + 1, 0));
+        else if(cur.col < file->LineLen(cur.line)) SetCur(TESIX_Location(cur.line, cur.col + 1));
+        UpdateView();
     } else if(key.key == "KEY_BACKSPACE"){
-        if(cur.col == 0 && file->LineLen(cur.line) != 0 && cur.line != 0){
-            uint32_t x = file->LineLen(cur.line - 1);
-            TESIX_Editor::Move(TESIX_Selection(TESIX_Location(cur.line, 0), TESIX_Location(cur.line, file->LineLen(cur.line) - 1)), TESIX_Location(cur.line - 1, file->LineLen(cur.line - 1)), file);
-            SetCur(TESIX_Location(cur.line - 1, x));
+        if(cur.col == 0 && cur.line != 0 && file->LineLen(cur.line) != 0){
+            TESIX_Location start(cur.line, 0);
+            TESIX_Location end(cur.line, file->LineLen(cur.line) - 1);
+            TESIX_Location target(cur.line - 1, file->LineLen(cur.line - 1));
+
+            TESIX_Selection selection(start, end);
+
+            TESIX_Editor::Move(selection, target, file);
+
+            SetCur(TESIX_Location(cur.line - 1, target.col));
+
             UpdateView();
         } else if(cur.col == 0 && file->LineLen(cur.line) == 0){
-            file->DelLine(cur.line);
+            TESIX_Editor::DelLine(cur.line, file);
+            SetCur(cur.line - 1, file->LineLen(cur.line - 1));
             UpdateView();
-        } else if(cur.col <= file->LineLen(cur.line) && cur.col != 0){
+        } else if(cur.col != 0 && cur.col <= file->LineLen(cur.line)){
             TESIX_Editor::DelCh(TESIX_Location(cur.line, cur.col - 1), file);
             MoveCur(0, -1);
             UpdateView();
         }
     } else if(key.key == "KEY_SPACE"){
-        if(cur.col <= file->LineLen(cur.line)){
-            std::string space(" ");
-            TESIX_Editor::Add(space, cur, file);
-            MoveCur(1, 0);
-            UpdateView();
-        }
+        // Handle Space
+        TESIX_Editor::Add(' ', cur, file);
+        MoveCur(0, 1);
+        UpdateView();
     } else if(key.key == "KEY_ENTER"){
         if(cur.col == 0){
+            // Handle at the start of a line
             TESIX_Editor::AddLine(cur.line, file);
             SetCur(TESIX_Location(cur.line + 1, 0));
+
             UpdateView();
         } else if(cur.col == file->LineLen(cur.line)){
-            // Handle at the end of the line
+            // Handle at the end of a line
             TESIX_Editor::AddLine(cur.line + 1, file);
             SetCur(TESIX_Location(cur.line + 1, 0));
+
             UpdateView();
         } else {
-            // Handle inside line
-            // Get locations
+            // Handle inside a line
             TESIX_Location start(cur.line, cur.col);
             TESIX_Location end(cur.line, file->LineLen(cur.line) - 1);
             TESIX_Location target(cur.line + 1, 0);
 
-            // Make Space in the next line
-            TESIX_Editor::AddLine(cur.line + 1, file);
+            TESIX_Selection selection(start, end);
+
+            TESIX_Editor::AddLine(target.line, file);
             
-            // Move the text to the new line
-            TESIX_Editor::Move(TESIX_Selection(start, end), target, file);
+            TESIX_Editor::Move(selection, target, file);
             
-            // Move the Cursor
-            SetCur(cur.line + 1, 0);
+            SetCur(target);
 
             UpdateView();
         }
     } else if(key.key == "s" && key.ctrl){
+        // Save the file to disk
         file->Save();
     } else if(IsChar(key.key)) {
-        if(cur.col <= file->LineLen(cur.line)){
-            TESIX_Editor::Add(key.key, cur, file);
-            MoveCur(1, 0);
-            UpdateView();
-        }
+        // Handle for characters
+        TESIX_Editor::Add(key.key, cur, file);
+        MoveCur(0, 1);
+
+        UpdateView();
+    } else {
+        // Oopsie woopsie This key isnt implemented ùvú
     }
 
 }
@@ -166,6 +172,11 @@ void TESIX_FileWindow::PrintLine(uint line, uint y){
         wprintw(win, line_str.substr((cur.col + 6) - left, 1).c_str());
         wattroff(win, A_REVERSE);
         wprintw(win, line_str.substr((cur.col + 7) - left).c_str());
+    } else if(line == file->Len()){
+        std::string end;
+        end.append(line_num);
+        end.resize(width, '-');
+        wprintw(win, end.c_str());
     } else {
         wprintw(win, line_str.c_str());
     }
@@ -173,55 +184,38 @@ void TESIX_FileWindow::PrintLine(uint line, uint y){
 
 
 void TESIX_FileWindow::SetCur(TESIX_Location loc){
-    cur = loc;
-    if(cur.line < 0) cur.line = 0;
-    if(cur.col < 0) cur.col = 0;
-
+    cur.line = loc.line;
+    if(cur.line > UINT_NEG_MIN) cur.line = 0;
     if(cur.line >= top + height){
-        top += cur.line - height;
-        UpdateView();
+        top = cur.line;
     }else if(cur.line < top){
         top = cur.line;
-        UpdateView();
-    } else {
-        UpdateView();
     }
 
-
+    cur.col = loc.col;
+    if(cur.col > UINT_NEG_MIN) cur.col = 0;
     if(cur.col < left){
         left = cur.col;
-        UpdateView();
     }else if(cur.col + 6 >= left + width){
-        left = cur.col - width;
-        UpdateView();
-    } else {
-        UpdateView();
+        left = (cur.col - width) + 7;
     }
 }
 
-void TESIX_FileWindow::SetCur(uint32_t line, uint32_t col){
-    cur = TESIX_Location(line, col);
-    if(cur.line < 0) cur.line = 0;
-    if(cur.col < 0) cur.col = 0;
 
+void TESIX_FileWindow::SetCur(uint32_t line, uint32_t col){
+    cur.line = line;
+    if(cur.line > UINT_NEG_MIN) cur.line = 0;
     if(cur.line >= top + height){
         top += cur.line - height;
-        UpdateView();
     }else if(cur.line < top){
         top = cur.line;
-        UpdateView();
-    } else {
-        UpdateView();
     }
 
-
+    cur.col = col;
+    if(cur.col > UINT_NEG_MIN) cur.col = 0;
     if(cur.col < left){
         left = cur.col;
-        UpdateView();
     }else if(cur.col + 6 >= left + width){
-        left = cur.col - width;
-        UpdateView();
-    } else {
-        UpdateView();
+        left = (cur.col - width) + 7;
     }
 }

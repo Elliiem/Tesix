@@ -35,8 +35,9 @@ class TESIX_File{
 
     std::string GetLine(int line);
     std::vector<std::string> GetSel(TESIX_Selection sel);
+
     int Len();
-    int LineLen(int line);
+    int LineLen(uint32_t line);
 
     private:
     std::fstream file;
@@ -45,6 +46,7 @@ class TESIX_File{
     std::vector<std::string> lines;
 
     private:
-    void CheckBounds(int line, int col);
+    int32_t CheckBounds(uint32_t line, uint32_t col, bool ignore_zero_len = false);
+    void BoundsError(int err, std::string from);
 
 };
