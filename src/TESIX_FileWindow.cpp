@@ -3,7 +3,7 @@
 #include "TESIX_FileWindow.h"
 #include "TESIX_Editor.h"
 
-#define UINT_NEG_MIN 4000000000
+const uint32_t UINT_NEG_MIN = 4000000000;
 
 TESIX_FileWindow::TESIX_FileWindow(uint32_t width, uint32_t height, uint32_t x, uint32_t y) : TESIX_Window(width, height, x, y){
     top = 0;

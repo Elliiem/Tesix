@@ -1,2 +1,5 @@
-**/build
-**/.vscode
+/build
+/.vscode
+
+lib/tree-sitter/**
+lib/tree-sitter-cpp/**

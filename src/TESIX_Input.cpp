@@ -8,7 +8,6 @@ TESIX_Input::TESIX_Input(){
     raw();
     wtimeout(input_win,50);
     set_escdelay(0);
-
 }
 
 TESIX_Input::~TESIX_Input(){
@@ -27,17 +26,17 @@ TESIX_KeyPress TESIX_Input::GetInput(){
             key.key = "KEY_UP";
         break;
 
-        case 571:
+        case KEY_UP_CTRL:
             key.key = "KEY_UP";
             key.ctrl = true;
         break;
 
-        case 572:
+        case KEY_SUP_CTRL:
             key.key = "KEY_SUP";
             key.ctrl = true;
         break;
 
-        case 337:
+        case KEY_SUP:
             key.key = "KEY_SUP";
         break;
 
@@ -46,12 +45,12 @@ TESIX_KeyPress TESIX_Input::GetInput(){
             key.key = "KEY_LEFT";
         break;
 
-        case 550:
+        case KEY_LEFT_CTRL:
             key.key = "KEY_LEFT";
             key.ctrl = true;
         break;
 
-        case 551:
+        case KEY_SLEFT_CTRL:
             key.key = "KEY_SLEFT";
             key.ctrl = true;
         break;
@@ -65,12 +64,12 @@ TESIX_KeyPress TESIX_Input::GetInput(){
             key.key = "KEY_RIGHT";
         break;
         
-        case 565:
+        case KEY_RIGHT_CTRL:
             key.key = "KEY_RIGHT";
             key.ctrl = true;
         break;
 
-        case 566:
+        case KEY_SRIGHT_CTRL:
             key.key = "KEY_SRIGHT";
             key.ctrl = true;
         break;
@@ -84,17 +83,17 @@ TESIX_KeyPress TESIX_Input::GetInput(){
             key.key = "KEY_DOWN";
         break;
 
-        case 530:
+        case KEY_DOWN_CTRL:
             key.key = "KEY_DOWN";
             key.ctrl = true;
         break;
 
-        case 531:
+        case KEY_SDOWN_CTRL:
             key.key = "KEY_SDOWN";
             key.ctrl = true;
         break;
 
-        case 336:
+        case KEY_SDOWN:
             key.key = "KEY_SDOWN";
         break;
 
@@ -168,7 +167,7 @@ TESIX_KeyPress TESIX_Input::GetInput(){
         break;
 
         // Alt / Esc Handler
-        case 27:
+        case KEY_ESC:
             raw_input = wgetch(input_win);
 
             if(raw_input == ERR || raw_input == 27){
@@ -214,3 +213,4 @@ bool TESIX_Input::IsCtrl(std::string &str){
     if(str[0] == '^' && str.length() != 1) return true;
     else return false;
 }
+
