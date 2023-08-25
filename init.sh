@@ -10,6 +10,4 @@ cd ..
 cd lib
 git clone https://github.com/tree-sitter/tree-sitter-cpp.git
 git clone https://github.com/tree-sitter/tree-sitter.git
-cd tree-sitter
-make
 
