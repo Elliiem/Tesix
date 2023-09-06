@@ -15,7 +15,9 @@ struct TESIX_Selection{
     TESIX_Location end;
 
     public:
-    bool IsMultiline();
+    bool IsMultiline(){
+        return start.line != end.line;
+    };
 
     private:
 

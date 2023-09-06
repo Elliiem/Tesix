@@ -28,7 +28,7 @@ set(TREE_SITTER_LANG_SOURCES)
 set(TESIX_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 set(TESIX_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 
-message(STATUS "Fining Tree Sitter Lang Sources and Includes")
+message(STATUS "Finding Tree Sitter Lang Sources and Includes")
 foreach(TREE_SITTER_LANG ${TREE_SITTER_LANGS})
     list(APPEND TREE_SITTER_LANG_INCLUDES ${TREE_SITTER_LANG}/src/tree-sitter)
     file(GLOB SOURCES ${TREE_SITTER_LANG}/src/*.c)

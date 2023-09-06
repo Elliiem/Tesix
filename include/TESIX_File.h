@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include <fstream>
-#include <vector>
 
 #include "TESIX_Selection.h"
+#include "TESIX_BoundsError.h"
 
 class TESIX_File{
     public:
@@ -13,7 +13,6 @@ class TESIX_File{
     ~TESIX_File();
     
     public:
-    std::string file_str;
 
     public:
     void Debug();
@@ -23,36 +22,52 @@ class TESIX_File{
     void Clear();
 
     void SetCh(TESIX_Location loc, char ch);
+    void SetCh(uint32_t line, uint32_t col, char ch);
     void AddCh(TESIX_Location loc, char ch);
+    void AddCh(uint32_t line, uint32_t col, char ch);
     void DelCh(TESIX_Location loc);
+    void DelCh(uint32_t line, uint32_t col);
 
-    void AddStr(TESIX_Location loc, std::string& str);
+    void AddStr(TESIX_Location loc, std::string str);
+    void AddStr(uint32_t line, uint32_t col, std::string str);
+
     void DelSel(TESIX_Selection selection);
 
-    void AddLine(int line);
-    void AddLines(int line, int count);
-    void DelLine(int line);
-    void DelLines(int line, int count);
-     
-    int Spacing(int line, int space);
+    void AddLine(uint32_t line);
+    void AddLines(uint32_t line, uint32_t count);
+    void DelLine(uint32_t line);
+    void DelLines(uint32_t line, uint32_t count);
 
-    std::string GetLine(int line);
-    std::vector<std::string> GetSel(TESIX_Selection sel);
+    const std::string* GetFileString();
+    std::string GetSel(TESIX_Selection sel);
+    std::string GetLine(uint32_t line);
 
-    int Len();
-    int LineLen(uint32_t line);
+    uint32_t Len();
+    uint32_t LineTextLen(uint32_t line);
 
     private:
     std::fstream file;
     std::string filename;
 
-    //std::vector<std::string> lines;
+    std::string file_str;
+    int line_count;
 
     private:
-    int32_t CheckBounds(uint32_t line, uint32_t col, bool ignore_zero_len = false);
-    void BoundsError(int err, std::string from);
-    uint32_t GetLineStart(uint32_t line);
+    TESIX_BoundsError CheckBounds(TESIX_Location loc);
+    TESIX_BoundsError CheckBounds(uint32_t line, uint32_t col);
+    void BoundsError(TESIX_BoundsError err, std::string from);
+    void LineSafeguard();
 
+    std::string ErrorLocationStr(TESIX_Location loc);
+    std::string ErrorLocationStr(uint32_t line, uint32_t col);
+
+    uint32_t LineLen(uint32_t line);
+    uint32_t LineStart(uint32_t line);
+    uint32_t LineEnd(uint32_t line);
+    uint32_t Index(TESIX_Location loc);
+    uint32_t Index(uint32_t line, uint32_t col);
+
+    uint32_t CharCount(std::string str, char ch);
 };
 
 /* 
