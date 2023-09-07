@@ -19,6 +19,8 @@ class TESIX_ColoredString{
     TESIX_ColoredString(std::vector<std::pair<uint32_t, uint32_t>> colors, std::string str);
     ~TESIX_ColoredString();
     public:
+
+    public:
     // Returns the next substring and the color its in
     std::pair<std::string, uint32_t> NextColor();
 
@@ -30,13 +32,12 @@ class TESIX_ColoredString{
     int32_t AddColor(uint32_t index, uint32_t color);
 
     uint32_t LastColored();
-
-    public:
-
+    uint32_t ColorAt(uint32_t index);
+    
     private:
     uint32_t cur_index;
     std::vector<std::pair<uint32_t, uint32_t>> colors;
-    // index color
+    // index, color
     // 0, 0
     // 4, 10
     // ...
@@ -45,5 +46,5 @@ class TESIX_ColoredString{
     std::string str;
 
     private:
-
+    void SetColors(std::vector<std::pair<uint32_t, uint32_t>> new_colors);
 };

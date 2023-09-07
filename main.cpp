@@ -13,6 +13,7 @@
 #include "TESIX_FileWindow.h"
 #include "TESIX_Input.h"
 #include "TESIX_SyntaxTree.h"
+#include "TESIX_ColoredString.h"
 
 #include "tree_sitter/api.h"
 
@@ -60,7 +61,7 @@ int main(int argc, char** argv){
     TESIX_SyntaxTree foo(root_node);
 
     // Output
-    TSNode* node = foo.Next();
+    /*TSNode* node = foo.Next();
     while(node != nullptr){
         std::cout << "\033[1;34mnode:\033[0m " << source_code.substr(ts_node_start_byte(*node), ts_node_end_byte(*node) - ts_node_start_byte(*node)) << " \033[1;31mtype:\033[0m " << ts_node_type(*node) << "\n";
         node = foo.Next();
@@ -69,7 +70,12 @@ int main(int argc, char** argv){
     std::cout << "\n";
     for(TSNode node : foo.errors){
         std::cout << ts_node_type(node) << "\n";
-    }
+    }*/
+
+    std::vector<std::pair<uint32_t, uint32_t>> vec = {std::pair<uint32_t, uint32_t>{0,0}, std::pair<uint32_t, uint32_t>{4,1}};
+    TESIX_ColoredString str(vec, "STRING");
+
+
 
     ts_tree_delete(tree);
     ts_parser_delete(parser);
