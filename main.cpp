@@ -1,4 +1,9 @@
 #include <ncurses.h>
+#include "tree_sitter/api.h"
+
+extern "C"{
+    TSLanguage *tree_sitter_cpp();
+};
 
 #include <locale>
 #include <unistd.h>
@@ -8,19 +13,13 @@
 #include <vector>
 #include <cstring>
 #include <optional>
+#include <chrono>
 
 #include "TESIX_File.h"
 #include "TESIX_FileWindow.h"
 #include "TESIX_Input.h"
 #include "TESIX_SyntaxTree.h"
 #include "TESIX_ColoredString.h"
-
-#include "tree_sitter/api.h"
-
-extern "C"{
-    TSLanguage *tree_sitter_cpp();
-}
-
 
 int main(int argc, char** argv){
     initscr(); cbreak(); noecho(); keypad(stdscr, TRUE);
@@ -72,9 +71,15 @@ int main(int argc, char** argv){
         std::cout << ts_node_type(node) << "\n";
     }*/
 
-    std::vector<std::pair<uint32_t, uint32_t>> vec = {std::pair<uint32_t, uint32_t>{0,0}, std::pair<uint32_t, uint32_t>{4,1}};
+    std::vector<TESIX_ColorIndexPair> vec = {TESIX_ColorIndexPair(TESIX_Color(TESIX_COLORS_NONE), 0), TESIX_ColorIndexPair(TESIX_Color(TESIX_COLORS_PRIM_TYPE), 4)};
     TESIX_ColoredString str(vec, "STRING");
 
+    str.PrintColors();
+    str.InsertColor(TESIX_ColorIndexPair(TESIX_Color(TESIX_COLORS_FUNC), 3));
+    str.SetHighlight(3, 5);
+    
+    std::cout << "\n";
+    str.PrintColors();
 
 
     ts_tree_delete(tree);
