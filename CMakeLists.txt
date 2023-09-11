@@ -1,5 +1,5 @@
 include(./func.cmake)
-
+#dsajkdhkjashdkashjk
 cmake_minimum_required(VERSION 3.5)
 
 project(tesix)

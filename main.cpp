@@ -3,7 +3,7 @@
 
 extern "C"{
     TSLanguage *tree_sitter_cpp();
-};
+}
 
 #include <locale>
 #include <unistd.h>
@@ -36,54 +36,33 @@ int main(int argc, char** argv){
 
     while(key.key != "q"){
         key = input.GetInput();
+        if(key.key == "q"){
+            break;
+        }
         window.Action(key);
     }
 
     endwin();
 
-    // TS Shizz ------------------------------------
+    /*
+    °v°
+    rawr
+    rawr
+    rawr
+    rawr
+    ^v^
+    */
 
-    TSParser* parser = ts_parser_new();
-    ts_parser_set_language(parser, tree_sitter_cpp());
+   // ._. // ;-;
 
-    const std::string source_code = *file.GetFileString();
+    TESIX_SyntaxTree foo(&file);
 
-    TSTree *tree = ts_parser_parse_string(
-        parser,
-        NULL,
-        source_code.c_str(),
-        source_code.length()
-    );
-
-    TSNode root_node = ts_tree_root_node(tree);
-
-    TESIX_SyntaxTree foo(root_node);
-
-    // Output
-    /*TSNode* node = foo.Next();
-    while(node != nullptr){
-        std::cout << "\033[1;34mnode:\033[0m " << source_code.substr(ts_node_start_byte(*node), ts_node_end_byte(*node) - ts_node_start_byte(*node)) << " \033[1;31mtype:\033[0m " << ts_node_type(*node) << "\n";
-        node = foo.Next();
-    }
+    foo.TEST();
 
     std::cout << "\n";
     for(TSNode node : foo.errors){
         std::cout << ts_node_type(node) << "\n";
-    }*/
-
-    std::vector<TESIX_ColorIndexPair> vec = {TESIX_ColorIndexPair(TESIX_Color(TESIX_COLORS_NONE), 0), TESIX_ColorIndexPair(TESIX_Color(TESIX_COLORS_PRIM_TYPE), 4)};
-    TESIX_ColoredString str(vec, "STRING");
-
-    str.PrintColors();
-    str.InsertColor(TESIX_ColorIndexPair(TESIX_Color(TESIX_COLORS_FUNC), 3));
-    str.SetHighlight(3, 5);
-    
-    std::cout << "\n";
-    str.PrintColors();
-
-
-    ts_tree_delete(tree);
-    ts_parser_delete(parser);
+    }
 
     return 0;
 }

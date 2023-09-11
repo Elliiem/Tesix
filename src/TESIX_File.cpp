@@ -169,8 +169,7 @@ const std::string *TESIX_File::GetFileString(){
     return &file_str;
 }
 
-std::string TESIX_File::GetSel(TESIX_Selection sel)
-{
+std::string TESIX_File::GetSel(TESIX_Selection sel){
     BoundsError(CheckBounds(sel.start), "TESIX_File::GetSel");
     BoundsError(CheckBounds(sel.end), "TESIX_File::GetSel");
 
@@ -189,6 +188,9 @@ std::string TESIX_File::GetLine(uint32_t line){
     return file_str.substr(start, len - 1);
 }
 
+std::string TESIX_File::GetInterval(uint32_t start, uint32_t end){
+    return file_str.substr(start, end - start + 1);
+}
 
 uint32_t TESIX_File::Len(){
     return line_count;

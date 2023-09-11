@@ -42,8 +42,12 @@ class TESIX_File{
     std::string GetSel(TESIX_Selection sel);
     std::string GetLine(uint32_t line);
 
+    std::string GetInterval(uint32_t start, uint32_t end);
+
     uint32_t Len();
     uint32_t LineTextLen(uint32_t line);
+
+    static uint32_t CharCount(std::string str, char ch);
 
     private:
     std::fstream file;
@@ -66,43 +70,4 @@ class TESIX_File{
     uint32_t LineEnd(uint32_t line);
     uint32_t Index(TESIX_Location loc);
     uint32_t Index(uint32_t line, uint32_t col);
-
-    uint32_t CharCount(std::string str, char ch);
 };
-
-/* 
-Node Tree impl
-Take a Node Tree and iterate over its Nodes line by line
-    Impl idea:
-    Pseudo Code
-    std::option<uint32_t> NextLine()
-    std::option<TS_Node> NextNode()
-    
-
-    std::option<uint32_t> line = NextLine()
-    std::option<TESIX_Node> node = NextNode()
-
-    // TESIX_Node Handles whitespace inbetween
-    // It does that by storing not only its current state but also the last
-    // That should make it easy to get the stuff between the two nodes
-    // by getting the end of the last state and the start of the current state
-
-    while(!line.empty()){ 
-        if(node.empty()){
-            NextLine()
-            node = NextNode()
-        }
-
-        // Do stuff with the Node
-    }
-    
-
-
-Be able to get the text in a Node ie from a range in the file and return it as a string
-
-For each node generate a Struct containing the colors the Node should be and the text
-    Selection implementation
-
-Be able to get the line the Node is located
-Be able to print this struct
-*/
