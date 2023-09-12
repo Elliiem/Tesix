@@ -75,32 +75,28 @@ std::optional<TSNode> TESIX_SyntaxTree::Next(){
 
 TESIX_ColoredString TESIX_SyntaxTree::NextLine(){
     TESIX_ColoredString ret_str("");
+    bool is_line_start = true;
+    uint32_t preleading_line_count = 0;
 
-    bool is_first_in_line = true;
-
-    while(true){
-        if(!is_last){
-            if(!IsLineStart(cur) || is_first_in_line){
-                if(is_first_in_line) is_first_in_line = false;
-                ret_str.Append(TESIX_ColorStringPair(GetNodeString(), GetNodeColor(cur)));
-                Next();
-                ret_str.Append(TESIX_ColorStringPair(GetNodeInbetween(), TESIX_COLORS_NONE));
-            } else break;
-        } else {
-
-            break;
-        }
+    if(queued_lines.size() != 0){
+        TESIX_ColoredString line = queued_lines[0];
+        queued_lines.erase(queued_lines.begin());
+        return line;
     }
 
-    ret_str.Append(TESIX_ColorStringPair("|", TESIX_COLORS_NONE));
+    if(IsMultiline(cur)) return MultilineHandle();
 
-    return ret_str;
+    preleading_line_count = TESIX_File::CharCount(GetNodeInbetween(), '\n');
+
+    if(preleading_line_count > 1) return PrelLineHandle();
+
+
+    return GetLine();
 }
 
 void TESIX_SyntaxTree::TEST(){
     while(!is_last){
-    // std::cout << "\033[1;34mnode:\033[0m " << GetNodeString(cur) << " \033[1;31mtype:\033[0m " << ts_node_type(*node) << "\n";
-    std::cout << NextLine().GetStr();
+        std::cout << NextLine().GetStr() << "|\n";
     }
 }
 
@@ -108,20 +104,12 @@ bool TESIX_SyntaxTree::IsMultiline(TSNode node){
     std::string node_string = GetNodeString(node);
 
     uint32_t index = node_string.find('\n', 0);
-    std::cout << index << "\n";
     if(index == -1) return false;
 
     index = node_string.find('\n', index + 1);
-    std::cout << index << "\n";
     if(index == -1) return false;
 
     return true;
-}
-
-bool TESIX_SyntaxTree::IsLineStart(TSNode node){
-    std::string inbtw = GetNodeInbetween();
-    if(TESIX_File::CharCount(inbtw, '\n') == 1) return true;
-    else return false;
 }
 
 std::string TESIX_SyntaxTree::GetNodeString(){
@@ -212,4 +200,105 @@ TESIX_Color TESIX_SyntaxTree::GetNodeColor(TSNode node){
     }
 
     return TESIX_Color();
+}
+
+TESIX_ColoredString TESIX_SyntaxTree::GetLine(){
+    TESIX_ColoredString ret_str("");
+    bool is_line_start = true;
+    uint32_t preleading_line_count = 0;
+
+    std::string prev_string = GetNodeInbetween();
+    ret_str.Append(TESIX_ColorStringPair(prev_string.substr(prev_string.find_last_of('\n') + 1)));
+
+    ret_str.Append(TESIX_ColorStringPair(GetNodeString(), GetNodeColor(cur)));
+    Next();
+    
+    while(true){
+        preleading_line_count = TESIX_File::CharCount(GetNodeInbetween(), '\n');
+        if(preleading_line_count > 0){
+            is_line_start = true;
+        } else {
+            is_line_start = false;
+        }
+
+        if(!is_last){
+            if(!is_line_start){
+                ret_str.Append(TESIX_ColorStringPair(GetNodeInbetween(), TESIX_COLORS_NONE));
+                ret_str.Append(TESIX_ColorStringPair(GetNodeString(), GetNodeColor(cur)));
+
+                Next();
+            } else {
+                std::string end_str = GetNodeInbetween();
+                uint32_t index = end_str.find('\n');
+                            
+                if(index != 0){
+                    ret_str.Append(TESIX_ColorStringPair(end_str.substr(0, index - 1), TESIX_COLORS_NONE));
+                }           
+                break;
+            }
+        } else {
+
+            break;
+        }
+    }
+
+    return ret_str;
+}
+
+TESIX_ColoredString TESIX_SyntaxTree::PrelLineHandle(){
+    std::string lines_str = GetNodeInbetween();
+
+    uint32_t current_newline = lines_str.find('\n', 0);
+    uint32_t next_newline = lines_str.find('\n', current_newline + 1);
+
+    while(next_newline <= lines_str.length() - 1){
+        std::string line = lines_str.substr(current_newline + 1, (next_newline - 1) - current_newline);
+
+        current_newline = lines_str.find('\n', current_newline + 1);
+        next_newline = lines_str.find('\n', current_newline + 1);
+
+        queued_lines.push_back(TESIX_ColoredString(line));
+    }
+
+    queued_lines.push_back(GetLine());
+
+    TESIX_ColoredString ret_str = queued_lines[0];
+    queued_lines.erase(queued_lines.begin());
+    return ret_str;
+}
+
+TESIX_ColoredString TESIX_SyntaxTree::MultilineHandle() {
+    std::string lines_str = GetNodeString();
+
+    uint32_t current_newline = 0;
+    uint32_t next_newline = lines_str.find('\n');
+
+
+    std::string line = lines_str.substr(current_newline, next_newline);
+    queued_lines.push_back(TESIX_ColoredString(line));
+    queued_lines.back().AddColor(TESIX_ColorIndexPair(GetNodeColor(cur), 0));
+
+    current_newline = lines_str.find('\n', current_newline + 1);
+    next_newline = lines_str.find('\n', current_newline + 1);
+
+    while(next_newline <= lines_str.length()){
+        std::string line = lines_str.substr(current_newline + 1, (next_newline - 1) - current_newline);
+
+        current_newline = lines_str.find('\n', current_newline + 1);
+        next_newline = lines_str.find('\n', current_newline + 1);
+
+        queued_lines.push_back(TESIX_ColoredString(line));
+        queued_lines.back().AddColor(TESIX_ColorIndexPair(GetNodeColor(cur), 0));
+    }
+
+    line = lines_str.substr(current_newline + 1);
+
+    queued_lines.push_back(TESIX_ColoredString(line));
+    queued_lines.back().AddColor(TESIX_ColorIndexPair(GetNodeColor(cur), 0));
+
+    Next();
+
+    TESIX_ColoredString ret_str = queued_lines[0];
+    queued_lines.erase(queued_lines.begin());
+    return ret_str;
 }

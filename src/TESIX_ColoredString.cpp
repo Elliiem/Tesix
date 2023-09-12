@@ -177,7 +177,9 @@ uint32_t TESIX_ColoredString::LastColoredIndex(){
 
 
 TESIX_Color TESIX_ColoredString::ColorAt(uint32_t index){
-    return colors[GetColorIndex(index)].color;
+    TESIX_Color col = colors[GetColorIndex(index)].color;
+    if(col.GetBase() == TESIX_COLORS_NULL) return TESIX_COLORS_NONE;
+    else return colors[GetColorIndex(index)].color;
 }
 
 
@@ -203,6 +205,14 @@ void TESIX_ColoredString::Append(TESIX_ColorStringPair color_string_pair){
         colored_string.append(color_string_pair.string);
         colors.push_back(TESIX_ColorIndexPair(color_string_pair.color, end));
     }        
+}
+
+void TESIX_ColoredString::EraseBack(){
+    colored_string.pop_back();
+    uint32_t len = colored_string.length();
+    if(colors.back().index == len){
+        colors.erase(colors.end(), colors.end());
+    }
 }
 
 std::string TESIX_ColoredString::GetStr() {

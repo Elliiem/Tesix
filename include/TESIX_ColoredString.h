@@ -121,6 +121,7 @@ class TESIX_ColoredString{
     void Simplyfy();
 
     void Append(TESIX_ColorStringPair color_string_pair);
+    void EraseBack();
 
 
     // tmp

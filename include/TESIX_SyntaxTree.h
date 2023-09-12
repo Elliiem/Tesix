@@ -81,14 +81,14 @@ class TESIX_SyntaxTree{
         "#include",
         "preproc_call",
         "extern",
-        "string_literal"
+        "string_literal",
+        "return"
     };
     
-    std::vector<TESIX_ColoredString> multiline_lines;
+    std::vector<TESIX_ColoredString> queued_lines;
 
     private:
     bool IsMultiline(TSNode node);
-    bool IsLineStart(TSNode node);
 
     std::string GetNodeString();
     std::string GetNodeString(TSNode node);
@@ -102,4 +102,9 @@ class TESIX_SyntaxTree{
     bool IsToken(TSNode node);
 
     TESIX_Color GetNodeColor(TSNode node);
+
+    TESIX_ColoredString GetLine();
+
+    TESIX_ColoredString PrelLineHandle();
+    TESIX_ColoredString MultilineHandle();
 };
