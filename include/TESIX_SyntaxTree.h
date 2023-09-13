@@ -18,32 +18,25 @@ class TESIX_SyntaxTree{
     TESIX_SyntaxTree(TESIX_File* file);
     ~TESIX_SyntaxTree();
     public:
-    TSNode cur; 
-    std::vector<TSNode> errors;
 
     public:
+    // TODO Remove
     TSNode Last();
-    TSNode Cur();
+    // -----------
+
+    // Clean
+    TSNode Current();
 
     std::optional<TSNode> Next();
+    std::optional<TSNode> Back();
 
     TESIX_ColoredString NextLine();
 
-    void TEST();
+
+    // Debug
+    void Debug();
 
     private:
-    TSParser* parser;
-    TSTree* tree;
-
-    TSNode root;
-    TSNode last;
-    TSNode last_token;
-
-    TESIX_File* file;
-
-    bool is_last;
-    bool is_line_start;
-
     const std::vector<std::string> token_types = {
         ",",
         ";",
@@ -85,26 +78,63 @@ class TESIX_SyntaxTree{
         "return"
     };
     
-    std::vector<TESIX_ColoredString> queued_lines;
+    TSParser* parser;
+    TSTree* tree;
+
+    TESIX_File* file;
+
+    TSNode root;
+
+    TSNode start;
+    TSNode end;
+
+    TSNode current;
+
+    bool is_start;
+    bool is_end;
+
+    // TODO Remove
+    TSNode last;
+    TSNode last_token;
+    // -----------
+    
+    std::vector<TESIX_ColoredString> line_queue;
+    std::vector<TSNode> errors;
 
     private:
-    bool IsMultiline(TSNode node);
+    // TODO Remove
+    TSNode LastNode();
+    // -----------
+
+    std::optional<TSNode> GetPrev(TSNode node);
+    std::optional<TSNode> GetNext(TSNode node);
+    std::optional<TSNode> GetPrevNode(TSNode node);
+    std::optional<TSNode> GetNextNode(TSNode node);
+
+    std::optional<TSNode> NextNode();
+    std::optional<TSNode> PrevNode();
 
     std::string GetNodeString();
     std::string GetNodeString(TSNode node);
     std::string GetNodeInbetween();
 
-    std::optional<TSNode> NextSibling(TSNode node);
+    TESIX_ColoredString GetLine();
+    TESIX_ColoredString PrelLineHandle();
+    TESIX_ColoredString MultilineHandle();
 
-    std::optional<TSNode> NextNode();
-    TSNode LastNode();
-
-    bool IsToken(TSNode node);
+    TESIX_ColoredString PollLineQueue();
 
     TESIX_Color GetNodeColor(TSNode node);
 
-    TESIX_ColoredString GetLine();
+    bool IsMultiline(TSNode node);
+    bool IsToken(TSNode node);
+    bool HasPrevSibling(TSNode& node);
+    bool HasNextSibling(TSNode& node);
+    bool HasChildren(TSNode& node);
 
-    TESIX_ColoredString PrelLineHandle();
-    TESIX_ColoredString MultilineHandle();
+    bool Compare(TSNode& node1, TSNode& node2);
+
+    TSNode GetLowestLeftSideChild(TSNode& node);
+    TSNode GetLowestRightSideChild(TSNode& node);
+
 };

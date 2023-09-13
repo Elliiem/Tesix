@@ -1,7 +1,5 @@
 #include <ncurses.h>
-  
-  
- 
+
 #include "tree_sitter/api.h"
 
 extern "C"{
@@ -47,6 +45,7 @@ int main(int argc, char** argv){
 
     endwin();
 
+
     /*
     °v°
     rawr
@@ -59,13 +58,7 @@ int main(int argc, char** argv){
    // ._. // ;-;
 
     TESIX_SyntaxTree foo(&file);
-
-    foo.TEST();
-
-    std::cout << "\n";
-    for(TSNode node : foo.errors){
-        std::cout << ts_node_type(node) << "\n";
-    }
+    foo.Debug();
 
     return 0;
 }
