@@ -55,8 +55,18 @@ std::optional<TSNode> TESIX_SyntaxTree::Next(){
 
     if(!NextNode().has_value()) return std::optional<TSNode>();
     
-    while(!IsToken(current) && !is_end){
+    while(!IsToken(current)){
         if(!NextNode().has_value()) return std::optional<TSNode>();
+    }
+
+    return std::optional<TSNode>(current);
+}
+
+std::optional<TSNode> TESIX_SyntaxTree::Back(){
+    if(!PrevNode().has_value()) return std::optional<TSNode>();
+    
+    while(!IsToken(current)){
+        if(!PrevNode().has_value()) return std::optional<TSNode>();
     }
 
     return std::optional<TSNode>(current);
@@ -79,6 +89,7 @@ TESIX_ColoredString TESIX_SyntaxTree::NextLine(){
 }
 
 void TESIX_SyntaxTree::Debug(){
+    Next();
     while(!is_end){
         std::cout << GetNodeString(Next().value()) << "|\n";
     }
@@ -109,7 +120,8 @@ std::string TESIX_SyntaxTree::GetNodeInbetween(){
 }
 
 std::optional<TSNode> TESIX_SyntaxTree::GetPrevNode(TSNode node){
-    if(is_start) return std::optional<TSNode>(current);
+    if(is_start) return std::optional<TSNode>();
+
     TSNode ret;
     
     if(HasPrevSibling(node)){
@@ -132,7 +144,8 @@ std::optional<TSNode> TESIX_SyntaxTree::GetPrevNode(TSNode node){
 }
 
 std::optional<TSNode> TESIX_SyntaxTree::GetNextNode(TSNode node){
-    if(is_end) return std::optional<TSNode>(current);
+    if(is_end) return std::optional<TSNode>();
+
     TSNode ret;
 
     if(HasChildren(node)){
@@ -162,29 +175,25 @@ std::optional<TSNode> TESIX_SyntaxTree::GetNextNode(TSNode node){
 std::optional<TSNode> TESIX_SyntaxTree::NextNode() {
     std::optional<TSNode> next = GetNextNode(current);
 
-    if(next.has_value()){
-        current = next.value();
-        if(Compare(current, end)) is_end = true;
-        return std::optional<TSNode>(next);
-    }
-
+    if(!next.has_value()) return std::optional<TSNode>();
     if(is_start) is_start = false;
+    if(Compare(next.value(), end)) is_end = true;
 
-    return std::optional<TSNode>();
+    current = next.value();
+
+    return std::optional<TSNode>(next);
 }
 
 std::optional<TSNode> TESIX_SyntaxTree::PrevNode() {
-    std::optional<TSNode> next = GetPrevNode(current);
+    std::optional<TSNode> prev = GetPrevNode(current);
 
-    if(next.has_value()){
-        current = next.value();
-        if(Compare(current, start)) is_start = true;
-        return std::optional<TSNode>(next);
-    }
-
+    if(!prev.has_value()) return std::optional<TSNode>();
     if(is_end) is_end = false;
+    if(Compare(prev.value(), start)) is_start = true;
 
-    return std::optional<TSNode>();
+    current = prev.value();
+
+    return std::optional<TSNode>(prev);
 }
 
 bool TESIX_SyntaxTree::IsToken(TSNode node){
@@ -303,23 +312,21 @@ TESIX_ColoredString TESIX_SyntaxTree::GetLine(){
             is_line_start = false;
         }
 
-        if(!is_end){
-            if(!is_line_start){
-                ret_str.Append(TESIX_ColorStringPair(GetNodeInbetween(), TESIX_COLORS_NONE));
-                ret_str.Append(TESIX_ColorStringPair(GetNodeString(), GetNodeColor(current)));
+        if(is_end) return ret_str;
 
-                Next();
-            } else {
-                std::string end_str = GetNodeInbetween();
-                uint32_t index = end_str.find('\n');
-                            
-                if(index != 0){
-                    ret_str.Append(TESIX_ColorStringPair(end_str.substr(0, index - 1), TESIX_COLORS_NONE));
-                }           
-                break;
-            }
+        if(!is_line_start){
+            ret_str.Append(TESIX_ColorStringPair(GetNodeInbetween(), TESIX_COLORS_NONE));
+            ret_str.Append(TESIX_ColorStringPair(GetNodeString(), GetNodeColor(current)));
+
+            Next();
         } else {
+            std::string end_str = GetNodeInbetween();
+            uint32_t index = end_str.find('\n');
 
+            if(index != 0){
+                ret_str.Append(TESIX_ColorStringPair(end_str.substr(0, index - 1), TESIX_COLORS_NONE));
+            }                           
+            
             break;
         }
     }

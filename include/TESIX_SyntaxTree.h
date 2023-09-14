@@ -128,6 +128,7 @@ class TESIX_SyntaxTree{
 
     bool IsMultiline(TSNode node);
     bool IsToken(TSNode node);
+    
     bool HasPrevSibling(TSNode& node);
     bool HasNextSibling(TSNode& node);
     bool HasChildren(TSNode& node);

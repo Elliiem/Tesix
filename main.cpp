@@ -55,7 +55,7 @@ int main(int argc, char** argv){
     ^v^
     */
 
-   // ._. // ;-;
+    // ._. // ;-;
 
     TESIX_SyntaxTree foo(&file);
     foo.Debug();
