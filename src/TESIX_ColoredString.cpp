@@ -40,6 +40,11 @@ bool TESIX_Color::operator==(TESIX_Color& other){
     return other.GetBase() == base && other.GetCurrent() == cur;
 }
 
+bool TESIX_Color::operator==(int32_t other){
+    if(base == other) return true;
+    
+    return false;
+}
 
 uint32_t TESIX_Color::GetCurrent(){
     return cur;
@@ -61,11 +66,16 @@ TESIX_ColorIndexPair::TESIX_ColorIndexPair(){
 
 TESIX_ColorIndexPair::~TESIX_ColorIndexPair(){}
 
-
-TESIX_ColoredString::TESIX_ColoredString(std::string str){
+TESIX_ColoredString::TESIX_ColoredString(){
     next_cur_index = 0;
-    this->colored_string = str;
+    colored_string = "";
     colors.push_back(TESIX_ColorIndexPair{TESIX_Color(TESIX_COLORS_NULL), 0});
+}
+
+TESIX_ColoredString::TESIX_ColoredString(std::string str) {
+  next_cur_index = 0;
+  this->colored_string = str;
+  colors.push_back(TESIX_ColorIndexPair{TESIX_Color(TESIX_COLORS_NULL), 0});
 }
 
 TESIX_ColoredString::TESIX_ColoredString(std::vector<TESIX_ColorIndexPair> colors, std::string str){
@@ -124,7 +134,7 @@ void TESIX_ColoredString::ClearMod(uint32_t start, uint32_t end){
 
 
 TESIX_ColoredString *TESIX_ColoredString::AddColor(TESIX_ColorIndexPair color_index_pair){
-    if(colors[0].color.GetCurrent() == TESIX_COLORS_NULL){
+    if(colors[0].color == TESIX_COLORS_NULL){
         if(color_index_pair.index == 0){
             colors[0] = color_index_pair;
         } else {
@@ -198,13 +208,27 @@ void TESIX_ColoredString::Simplyfy(){
 void TESIX_ColoredString::Append(TESIX_ColorStringPair color_string_pair){
     if(color_string_pair.string.length() != 0){    
         uint32_t end = colored_string.length();
-        if(end == 0){
+
+        if(colors[0].color == TESIX_COLORS_NULL){
             colors[0].color = color_string_pair.color;
         }
         
         colored_string.append(color_string_pair.string);
         colors.push_back(TESIX_ColorIndexPair(color_string_pair.color, end));
     }        
+}
+
+void TESIX_ColoredString::Append(std::string str){
+    if(str.length() != 0){    
+        uint32_t end = colored_string.length();
+
+        if(colors[0].color == TESIX_COLORS_NULL){
+            colors[0].color = TESIX_COLORS_NONE;
+        }
+        
+        colored_string.append(str);
+        colors.push_back(TESIX_ColorIndexPair(TESIX_Color(TESIX_COLORS_NONE), end));
+    }
 }
 
 void TESIX_ColoredString::EraseBack(){

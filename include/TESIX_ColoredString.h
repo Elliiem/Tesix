@@ -47,6 +47,7 @@ struct TESIX_Color{
     TESIX_Color ToHighlight();
     
     bool operator==(TESIX_Color& other);
+    bool operator==(int32_t other);
 
     uint32_t GetCurrent();
     uint32_t GetBase();
@@ -95,6 +96,7 @@ struct TESIX_ColorStringPair{
 
 class TESIX_ColoredString{
     public:
+    TESIX_ColoredString();
     TESIX_ColoredString(std::string str);
     TESIX_ColoredString(std::vector<TESIX_ColorIndexPair> colors, std::string str);
     ~TESIX_ColoredString();
@@ -121,6 +123,8 @@ class TESIX_ColoredString{
     void Simplyfy();
 
     void Append(TESIX_ColorStringPair color_string_pair);
+    void Append(std::string str);
+
     void EraseBack();
 
 
