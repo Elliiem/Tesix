@@ -20,11 +20,6 @@ class TESIX_SyntaxTree{
     public:
 
     public:
-    // TODO Remove
-    TSNode Last();
-    // -----------
-
-    // Clean
     TSNode Current();
 
     std::optional<TSNode> Next();
@@ -92,20 +87,11 @@ class TESIX_SyntaxTree{
 
     bool is_start;
     bool is_end;
-
-    // TODO Remove
-    TSNode last;
-    TSNode last_token;
-    // -----------
     
     std::vector<TESIX_ColoredString> line_queue;
     std::vector<TSNode> errors;
 
     private:
-    // TODO Remove
-    TSNode LastNode();
-    // -----------
-
     std::optional<TSNode> GetPrev(TSNode node);
     std::optional<TSNode> GetNext(TSNode node);
     std::optional<TSNode> GetPrevNode(TSNode node);
@@ -116,17 +102,20 @@ class TESIX_SyntaxTree{
 
     std::string GetNodeString();
     std::string GetNodeString(TSNode node);
-    std::string GetNodeInbetween();
+    std::string GetNodeInbetween(TSNode& node);
 
-    TESIX_ColoredString GetLine();
-    TESIX_ColoredString PrelLineHandle();
-    TESIX_ColoredString MultilineHandle();
+    TESIX_ColoredString GetLine(TSNode& node);
+    TESIX_ColoredString AddPrevEmptyLines(TSNode& node);
+    TESIX_ColoredString AddMultilineNodeLines(TSNode& node);
+
+    TSNode GetLineStart(TSNode& node);
 
     TESIX_ColoredString PollLineQueue();
 
     TESIX_Color GetNodeColor(TSNode node);
 
     bool IsMultiline(TSNode node);
+    bool IsLineStart(TSNode& node);
     bool IsToken(TSNode node);
     
     bool HasPrevSibling(TSNode& node);

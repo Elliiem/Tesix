@@ -9,6 +9,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_MESSAGE_CONTEXT_SHOW, TRUE)
 
+set(CMAKE_C_COMPILER "gcc")
+set(CMAKE_CXX_COMPILER "g++")
+
 # VARS -------------------------------------------------------------------------------
 #Tree Sitter 
 set(TREE_SITTER_DIR ${CMAKE_SOURCE_DIR}/lib/tree-sitter)

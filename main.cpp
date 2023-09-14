@@ -25,7 +25,7 @@ extern "C"{
 int main(int argc, char** argv){
     initscr(); cbreak(); noecho(); keypad(stdscr, TRUE);
 
-    std::string file_path = "/home/elliem/Dev/Programs/1st-Party/cpp/Tesix/main.cpp";
+    std::string file_path = "/home/elliiem/Dev/Programs/1st-Party/cpp/Tesix/main.cpp";
     TESIX_File file(file_path);
 
     TESIX_FileWindow window(200, 50, 0, 0);
@@ -58,7 +58,7 @@ int main(int argc, char** argv){
     // ._. // ;-;
 
     TESIX_SyntaxTree foo(&file);
-    foo.Debug();
-
+    foo.Debug();    
+    
     return 0;
 }
