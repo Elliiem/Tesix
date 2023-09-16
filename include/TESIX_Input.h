@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include <ncurses.h>
 
@@ -13,21 +13,21 @@
 #define KEY_SRIGHT_CTRL 566
 #define KEY_DOWN_CTRL 530
 #define KEY_SDOWN_CTRL 531
-#define KEY_SDOWN 336 
+#define KEY_SDOWN 336
 #define KEY_ESC 27
 
-
-class TESIX_Input{
-    public:
+class TESIX_Input {
+  public:
     TESIX_Input();
     ~TESIX_Input();
-    public:
+
+  public:
     TESIX_KeyPress GetInput();
-    public:
 
-    private:
+  public:
+  private:
     WINDOW* input_win;
-    bool IsCtrl(std::string&str);
-    private:
+    bool IsCtrl(std::string& str);
 
+  private:
 };

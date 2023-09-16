@@ -5,8 +5,8 @@
 #include "TESIX_File.h"
 // Edits files and directories
 
-class TESIX_Editor{
-    public:
+class TESIX_Editor {
+  public:
     static void Add(std::string& str, TESIX_Location loc, TESIX_File* file);
     static void Add(char ch, TESIX_Location loc, TESIX_File* file);
     static void Del(TESIX_Selection sel, TESIX_File* file);

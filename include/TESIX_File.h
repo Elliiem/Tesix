@@ -1,20 +1,19 @@
 #pragma once
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
-#include "TESIX_Selection.h"
 #include "TESIX_BoundsError.h"
+#include "TESIX_Selection.h"
 
-class TESIX_File{
-    public:
+class TESIX_File {
+  public:
     TESIX_File();
     TESIX_File(std::string& filename);
     ~TESIX_File();
-    
-    public:
 
-    public:
+  public:
+  public:
     void Debug();
 
     void Save();
@@ -49,14 +48,14 @@ class TESIX_File{
 
     static uint32_t CharCount(std::string str, char ch);
 
-    private:
+  private:
     std::fstream file;
     std::string filename;
 
     std::string file_str;
     int line_count;
 
-    private:
+  private:
     TESIX_BoundsError CheckBounds(TESIX_Location loc);
     TESIX_BoundsError CheckBounds(uint32_t line, uint32_t col);
     void BoundsError(TESIX_BoundsError err, std::string from);

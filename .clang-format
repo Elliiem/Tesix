@@ -5,9 +5,9 @@ PointerAlignment: Left
 
 SpaceBeforeParens: Custom
 SpaceBeforeParensOptions:
-  AfterControlStatements: false
-  AfterFunctionDefinitionName: false
+  AfterControlStatements: true
 
-AllowShortIfStatementsOnASingleLine:  AllIfsAndElse
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortFunctionsOnASingleLine: None
 
 ColumnLimit: 200

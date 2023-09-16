@@ -6,20 +6,20 @@
 #include "TESIX_Window.h"
 
 // Displays the file view
-class TESIX_FileWindow : public TESIX_Window{
-    public:
+class TESIX_FileWindow : public TESIX_Window {
+  public:
     TESIX_FileWindow(uint32_t width, uint32_t height, uint32_t x, uint32_t y);
     ~TESIX_FileWindow();
-    public:
+
+  public:
     void SetFile(TESIX_File* file);
 
     virtual void Action(TESIX_KeyPress key);
 
     void UpdateView();
 
-    public:
-
-    private:
+  public:
+  private:
     TESIX_File* file;
 
     TESIX_Location cur;
@@ -27,7 +27,7 @@ class TESIX_FileWindow : public TESIX_Window{
     uint32_t top;
     uint32_t left;
 
-    private:
+  private:
     void PrintLine(uint line, uint y);
 
     void SetCur(TESIX_Location loc);
