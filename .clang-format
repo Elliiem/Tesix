@@ -1,1 +1,13 @@
-BasedOnStyle: Chromium
+BasedOnStyle: LLVM
+IndentWidth: 4
+PointerAlignment: Left
+
+
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: false
+  AfterFunctionDefinitionName: false
+
+AllowShortIfStatementsOnASingleLine:  AllIfsAndElse
+
+ColumnLimit: 200

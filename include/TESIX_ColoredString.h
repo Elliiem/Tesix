@@ -1,11 +1,10 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <cinttypes>
+#include <string>
+#include <vector>
 
-
-enum TESIX_Colors{
+enum TESIX_Colors {
     TESIX_COLORS_NONE = 0,
     // TESIX_COLORS_NONE_ERR = 1,
     // TESIX_COLORS_NONE_HIGH = 2,
@@ -33,72 +32,68 @@ enum TESIX_Colors{
     TESIX_COLORS_NULL = -1
 };
 
-
-struct TESIX_Color{
-    public:
+struct TESIX_Color {
+  public:
     TESIX_Color(uint32_t base_col);
     TESIX_Color();
     ~TESIX_Color();
-    public:
 
-    public:
+  public:
+  public:
     TESIX_Color ClearMod();
     TESIX_Color ToError();
     TESIX_Color ToHighlight();
-    
+
     bool operator==(TESIX_Color& other);
     bool operator==(int32_t other);
 
     uint32_t GetCurrent();
     uint32_t GetBase();
 
-    private:
+  private:
     uint32_t base;
     uint32_t cur;
 
-    private:
-
+  private:
 };
 
-struct TESIX_ColorIndexPair{
-    public:
+struct TESIX_ColorIndexPair {
+  public:
     TESIX_ColorIndexPair(TESIX_Color color, uint32_t index);
     TESIX_ColorIndexPair();
     ~TESIX_ColorIndexPair();
-    public:
+
+  public:
     TESIX_Color color;
     uint32_t index;
 
-    public:
-
-    private:
-
-    private:
+  public:
+  private:
+  private:
 };
 
-struct TESIX_ColorStringPair{
-    public:
+struct TESIX_ColorStringPair {
+  public:
     TESIX_ColorStringPair(std::string string, TESIX_Color color);
     TESIX_ColorStringPair(std::string string);
     TESIX_ColorStringPair();
     ~TESIX_ColorStringPair();
-    public:
+
+  public:
     TESIX_Color color;
     std::string string;
 
-    public:
-
-    private:
-
-    private:
-
+  public:
+  private:
+  private:
 };
 
-class TESIX_ColoredString{
-    public:
+class TESIX_ColoredString {
+  public:
     TESIX_ColoredString();
     TESIX_ColoredString(std::string str);
     TESIX_ColoredString(std::vector<TESIX_ColorIndexPair> colors, std::string str);
+    TESIX_ColoredString(std::string str, TESIX_Color color);
     ~TESIX_ColoredString();
 
     // Returns the next substring and the color its in
@@ -127,21 +122,19 @@ class TESIX_ColoredString{
 
     void EraseBack();
 
-
     // tmp
     std::string GetStr();
     void PrintColors();
-    
-    private:
+
+  private:
     std::vector<TESIX_ColorIndexPair> colors;
-    
+
     uint32_t next_cur_index;
 
     std::string colored_string;
 
-    private:
+  private:
     uint32_t GetColorIndex(uint32_t index);
 
     std::pair<uint32_t, uint32_t> CreateInterval(uint32_t start, uint32_t end);
-
 };

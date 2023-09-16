@@ -2,24 +2,24 @@
 
 #include "tree_sitter/api.h"
 
-extern "C"{
-    TSLanguage* tree_sitter_cpp();
+extern "C" {
+TSLanguage* tree_sitter_cpp();
 }
 
-#include <vector>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "TESIX_ColoredString.h"
 #include "TESIX_File.h"
 
-class TESIX_SyntaxTree{
-    public:
+class TESIX_SyntaxTree {
+  public:
     TESIX_SyntaxTree(TESIX_File* file);
     ~TESIX_SyntaxTree();
-    public:
 
-    public:
+  public:
+  public:
     TSNode Current();
 
     std::optional<TSNode> Next();
@@ -27,52 +27,49 @@ class TESIX_SyntaxTree{
 
     TESIX_ColoredString NextLine();
 
-
     // Debug
     void Debug();
 
-    private:
-    const std::vector<std::string> token_types = {
-        ",",
-        ";",
-        "(",
-        ")",
-        "{",
-        "}",
-        "[",
-        "]",
-        "+",
-        "-",
-        "*",
-        "/",
-        "%",
-        "::",
-        ":",
-        "<",
-        ">",
-        "!",
-        "&",
-        "&&",
-        "|",
-        "||",
-        "while",
-        "for",
-        "if",
-        "else"
-        "primitive_type",
-        "type_identifier",
-        "number_literal",
-        "namespace_identifier",
-        "identifier",
-        "comment",
-        "system_lib_string",
-        "#include",
-        "preproc_call",
-        "extern",
-        "string_literal",
-        "return"
-    };
-    
+  private:
+    const std::vector<std::string> token_types = {",",
+                                                  ";",
+                                                  "(",
+                                                  ")",
+                                                  "{",
+                                                  "}",
+                                                  "[",
+                                                  "]",
+                                                  "+",
+                                                  "-",
+                                                  "*",
+                                                  "/",
+                                                  "%",
+                                                  "::",
+                                                  ":",
+                                                  "<",
+                                                  ">",
+                                                  "!",
+                                                  "&",
+                                                  "&&",
+                                                  "|",
+                                                  "||",
+                                                  "while",
+                                                  "for",
+                                                  "if",
+                                                  "else",
+                                                  "primitive_type",
+                                                  "type_identifier",
+                                                  "number_literal",
+                                                  "namespace_identifier",
+                                                  "identifier",
+                                                  "comment",
+                                                  "system_lib_string",
+                                                  "#include",
+                                                  "preproc_call",
+                                                  "extern",
+                                                  "string_literal",
+                                                  "return"};
+
     TSParser* parser;
     TSTree* tree;
 
@@ -87,11 +84,11 @@ class TESIX_SyntaxTree{
 
     bool is_start;
     bool is_end;
-    
+
     std::vector<TESIX_ColoredString> line_queue;
     std::vector<TSNode> errors;
 
-    private:
+  private:
     std::optional<TSNode> GetPrev(TSNode node);
     std::optional<TSNode> GetNext(TSNode node);
     std::optional<TSNode> GetPrevNode(TSNode node);
@@ -103,10 +100,11 @@ class TESIX_SyntaxTree{
     std::string GetNodeString();
     std::string GetNodeString(TSNode node);
     std::string GetNodeInbetween(TSNode& node);
+    std::string GetLinePrel(TSNode& node);
 
     TESIX_ColoredString GetLine(TSNode& node);
-    TESIX_ColoredString AddPrevEmptyLines(TSNode& node);
-    TESIX_ColoredString AddMultilineNodeLines(TSNode& node);
+    void AddPrevEmptyLines(TSNode& node);
+    void AddMultilineNodeLines(TSNode& node);
 
     TSNode GetLineStart(TSNode& node);
 
@@ -117,7 +115,7 @@ class TESIX_SyntaxTree{
     bool IsMultiline(TSNode node);
     bool IsLineStart(TSNode& node);
     bool IsToken(TSNode node);
-    
+
     bool HasPrevSibling(TSNode& node);
     bool HasNextSibling(TSNode& node);
     bool HasChildren(TSNode& node);
@@ -127,4 +125,6 @@ class TESIX_SyntaxTree{
     TSNode GetLowestLeftSideChild(TSNode& node);
     TSNode GetLowestRightSideChild(TSNode& node);
 
+    TESIX_ColoredString GetMultilineFirstLine(TSNode& node);
+    TSNode GetNextLineStart(TSNode& node);
 };
