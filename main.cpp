@@ -1,10 +1,6 @@
 #include "tree_sitter/api.h"
 #include <ncurses.h>
 
-extern "C" {
-TSLanguage* tree_sitter_cpp();
-}
-
 #include <chrono>
 #include <cstring>
 #include <fstream>
@@ -27,7 +23,7 @@ int main(int argc, char** argv) {
     noecho();
     keypad(stdscr, TRUE);
 
-    std::string file_path = "/home/elliem/Dev/Programs/1st-Party/cpp/Tesix/main.cpp";
+    std::string file_path = "/home/elliem/Dev/Programs/1st-Party/cpp/Tesix/src/TESIX_SyntaxTree.cpp";
     TESIX_File file(file_path);
 
     TESIX_FileWindow window(200, 50, 0, 0);
@@ -37,10 +33,10 @@ int main(int argc, char** argv) {
     TESIX_Input input;
     TESIX_KeyPress key;
 
-    while(key.key != "q") {
+    while (key.key != "q") {
         key = input.GetInput();
 
-        if(key.key == "q") {
+        if (key.key == "q") {
             break;
         }
 
@@ -52,7 +48,11 @@ int main(int argc, char** argv) {
     // ._. // ;-;
 
     TESIX_SyntaxTree foo(&file);
+
+    auto start = std::chrono::high_resolution_clock::now();
     foo.Debug();
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "\n";
 
     return 0;
 }

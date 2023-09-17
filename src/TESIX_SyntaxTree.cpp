@@ -10,6 +10,7 @@ TESIX_SyntaxTree::TESIX_SyntaxTree(TESIX_File* file) {
 
     tree = ts_parser_parse_string(parser, NULL, source_code.c_str(), source_code.length());
     root = ts_tree_root_node(tree);
+    end = GetLowestRightSideChild(root);
 
     current = GetNext(root).value();
 
@@ -17,7 +18,6 @@ TESIX_SyntaxTree::TESIX_SyntaxTree(TESIX_File* file) {
     is_end = false;
 
     start = current;
-    end = GetLowestRightSideChild(root);
 }
 
 TESIX_SyntaxTree::~TESIX_SyntaxTree() {
@@ -101,7 +101,7 @@ std::string TESIX_SyntaxTree::GetNodeString() {
     return file->GetInterval(ts_node_start_byte(current), ts_node_end_byte(current) - 1);
 }
 
-std::string TESIX_SyntaxTree::GetNodeString(TSNode node) {
+std::string TESIX_SyntaxTree::GetNodeString(TSNode& node) {
     return file->GetInterval(ts_node_start_byte(node), ts_node_end_byte(node) - 1);
 }
 
@@ -124,7 +124,7 @@ std::string TESIX_SyntaxTree::GetLinePrel(TSNode& node) {
     return inbetween.substr(index + 1);
 }
 
-std::optional<TSNode> TESIX_SyntaxTree::GetPrev(TSNode node) {
+std::optional<TSNode> TESIX_SyntaxTree::GetPrev(TSNode& node) {
     std::optional<TSNode> prev = GetPrevNode(node);
 
     if (!prev.has_value()) return prev;
@@ -137,7 +137,7 @@ std::optional<TSNode> TESIX_SyntaxTree::GetPrev(TSNode node) {
     return prev;
 }
 
-std::optional<TSNode> TESIX_SyntaxTree::GetNext(TSNode node) {
+std::optional<TSNode> TESIX_SyntaxTree::GetNext(TSNode& node) {
     std::optional<TSNode> next = GetNextNode(node);
 
     if (!next.has_value()) return next;
@@ -150,13 +150,14 @@ std::optional<TSNode> TESIX_SyntaxTree::GetNext(TSNode node) {
     return next;
 }
 
-std::optional<TSNode> TESIX_SyntaxTree::GetPrevNode(TSNode node) {
+std::optional<TSNode> TESIX_SyntaxTree::GetPrevNode(TSNode& node) {
     if (Compare(node, root)) return std::optional<TSNode>();
 
     TSNode ret;
 
-    if (HasPrevSibling(node)) {
-        TSNode sibling = ts_node_prev_sibling(node);
+    TSNode sibling = ts_node_prev_sibling(node);
+
+    if (!ts_node_is_null(sibling)) {
         ret = GetLowestRightSideChild(sibling);
     } else {
         ret = ts_node_parent(node);
@@ -174,9 +175,8 @@ std::optional<TSNode> TESIX_SyntaxTree::GetPrevNode(TSNode node) {
     return std::optional<TSNode>(ret);
 }
 
-std::optional<TSNode> TESIX_SyntaxTree::GetNextNode(TSNode node) {
+std::optional<TSNode> TESIX_SyntaxTree::GetNextNode(TSNode& node) {
     if (Compare(node, end)) return std::optional<TSNode>();
-
     TSNode ret;
 
     if (HasChildren(node)) {
@@ -227,16 +227,8 @@ std::optional<TSNode> TESIX_SyntaxTree::PrevNode() {
     return std::optional<TSNode>(prev);
 }
 
-bool TESIX_SyntaxTree::IsToken(TSNode node) {
-    std::string type(ts_node_type(node));
-
-    bool is_token = false;
-
-    for (std::string token_type : token_types) {
-        if (type == token_type) is_token = true;
-    }
-
-    return is_token;
+bool TESIX_SyntaxTree::IsToken(TSNode& node) {
+    return token_type[ts_node_type(node)];
 }
 
 bool TESIX_SyntaxTree::HasPrevSibling(TSNode& node) {
