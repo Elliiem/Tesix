@@ -1,3 +1,0 @@
-/home/elliem/Dev/Programs/1st-Party/cpp/Tesix/valgrind-log/CMakeFiles/tesix.dir
-/home/elliem/Dev/Programs/1st-Party/cpp/Tesix/valgrind-log/CMakeFiles/edit_cache.dir
-/home/elliem/Dev/Programs/1st-Party/cpp/Tesix/valgrind-log/CMakeFiles/rebuild_cache.dir

@@ -48,11 +48,19 @@ int main(int argc, char** argv) {
     // ._. // ;-;
 
     TESIX_SyntaxTree foo(&file);
+    /*uint32_t sum = 0;
+    uint32_t count = 10;
 
-    auto start = std::chrono::high_resolution_clock::now();
+    for (uint32_t i = 0; i < count; i++) {
+        auto start = std::chrono::high_resolution_clock::now();
+        foo.Debug();
+        auto end = std::chrono::high_resolution_clock::now();
+        sum += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    }
+
+    std::cout << sum / count << "\n";*/
+
     foo.Debug();
-    auto end = std::chrono::high_resolution_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "\n";
 
     return 0;
 }

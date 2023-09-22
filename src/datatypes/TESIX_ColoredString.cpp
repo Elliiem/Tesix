@@ -212,6 +212,10 @@ void TESIX_ColoredString::Append(TESIX_ColorStringPair color_string_pair) {
             colors[0].color = color_string_pair.color;
         }
 
+        if (color_string_pair.color == TESIX_COLORS_NULL) {
+            color_string_pair.color = TESIX_COLORS_NONE;
+        }
+
         colored_string.append(color_string_pair.string);
         colors.push_back(TESIX_ColorIndexPair(color_string_pair.color, end));
     }
