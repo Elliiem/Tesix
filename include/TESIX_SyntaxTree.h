@@ -25,8 +25,6 @@ class TESIX_SyntaxTree {
     TSNode Current();
 
     std::optional<TSNode> Next();
-    std::optional<TSNode> Back();
-
     TESIX_ColoredString NextLine();
 
     // Debug
@@ -96,6 +94,19 @@ class TESIX_SyntaxTree {
                                                      {"~", 1},
                                                      {"throw", 1},
                                                      {"break", 1},
+                                                     {"auto", 1},
+                                                     {"++", 1},
+                                                     {"nullptr", 1},
+                                                     {"--", 1},
+                                                     {"for_range_loop", 0},
+                                                     {"abstract_pointer_declarator", 0},
+                                                     {"initializer_list", 0},
+                                                     {"for_statement", 0},
+                                                     {"cast_expression", 0},
+                                                     {"array_declarator", 0},
+                                                     {"update_expression", 0},
+                                                     {"placeholder_type_specifier", 0},
+                                                     {"ERROR", 0},
                                                      {"catch_clause", 0},
                                                      {"subscript_expression", 0},
                                                      {"subscript_argument_list", 0},
@@ -156,7 +167,8 @@ class TESIX_SyntaxTree {
 
     TSNode root;
 
-    TSNode current;
+    TSTreeCursor cur;
+    TSNode last_token;
 
     TSNode start;
     TSNode end;
@@ -174,28 +186,20 @@ class TESIX_SyntaxTree {
     std::optional<TSNode> GetNextNode(TSNode& node);
     std::optional<TSNode> GetPrevNode(TSNode& node);
 
-    TSNode GetLineStart(TSNode& node);
-    TSNode GetNextLineStart(TSNode& node);
     TSNode GetLowestLeftSideChild(TSNode& node);
     TSNode GetLowestRightSideChild(TSNode& node);
 
     // Node Iterators
     std::optional<TSNode> NextNode();
-    std::optional<TSNode> PrevNode();
 
     // String Getters
-    std::string GetNodeString();
     std::string GetNodeString(TSNode& node);
     std::string GetNodeInbetween(TSNode& prev, TSNode& cur);
     std::string GetNodeInbetween(TSNode& node);
-    std::string GetLinePrel(TSNode& node);
-
-    // Line Getters
-    std::pair<TESIX_ColoredString, TSNode> GetLine(TSNode& node);
-    TESIX_ColoredString GetMultilineFirstLine(TSNode& node);
+    std::string GetNodePrel(TSNode& prev, TSNode& node);
 
     // Line Queue Adders and Poller
-    void AddPrevEmptyLines(TSNode& node);
+    void AddEmptyLines(TSNode& prev, TSNode& node);
     void AddMultilineNodeLines(TSNode& node);
     TESIX_ColoredString PollLineQueue();
 
@@ -205,10 +209,7 @@ class TESIX_SyntaxTree {
     bool IsMultiline(TSNode node);
     bool IsLineStart(TSNode& node);
     bool IsLineStart(TSNode& prev, TSNode& cur);
-    bool IsToken(TSNode& node);
-    bool HasPrevSibling(TSNode& node);
-    bool HasNextSibling(TSNode& node);
-    bool HasChildren(TSNode& node);
+    bool IsToken(TSNode node);
 
     bool Compare(TSNode& node1, TSNode& node2);
 };

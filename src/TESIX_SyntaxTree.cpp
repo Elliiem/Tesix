@@ -13,12 +13,12 @@ TESIX_SyntaxTree::TESIX_SyntaxTree(TESIX_File* file) {
     root = ts_tree_root_node(tree);
     end = GetLowestRightSideChild(root);
 
-    current = GetNext(root).value();
+    cur = ts_tree_cursor_new(root);
+    Next();
+    start = Current();
 
     is_start = true;
     is_end = false;
-
-    start = current;
 }
 
 TESIX_SyntaxTree::~TESIX_SyntaxTree() {
@@ -27,88 +27,75 @@ TESIX_SyntaxTree::~TESIX_SyntaxTree() {
 }
 
 TSNode TESIX_SyntaxTree::Current() {
-    return current;
+    return ts_tree_cursor_current_node(&cur);
 }
 
 std::optional<TSNode> TESIX_SyntaxTree::Next() {
-    if (!NextNode().has_value()) return std::optional<TSNode>();
-
-    while (!IsToken(current)) {
-        if (!NextNode().has_value()) return std::optional<TSNode>();
+    TSNode prev_last = last_token;
+    last_token = Current();
+    if (!NextNode().has_value()) {
+        last_token = prev_last;
+        return std::optional<TSNode>();
     }
 
-    return std::optional<TSNode>(current);
-}
-
-std::optional<TSNode> TESIX_SyntaxTree::Back() {
-    if (!PrevNode().has_value()) return std::optional<TSNode>();
-
-    while (!IsToken(current)) {
-        if (!PrevNode().has_value()) return std::optional<TSNode>();
+    while (!IsToken(Current())) {
+        if (!NextNode().has_value()) {
+            last_token = prev_last;
+            return std::optional<TSNode>();
+        }
     }
 
-    return std::optional<TSNode>(current);
+    return Current();
 }
 
 TESIX_ColoredString TESIX_SyntaxTree::NextLine() {
-    if (line_queue.size() != 0) {
-        TESIX_ColoredString str = PollLineQueue();
-        return str;
-    }
+    if (line_queue.size() > 0) {
+        return PollLineQueue();
+    };
+    std::optional<TSNode> node = Current();
 
-    if (IsMultiline(current)) {
-        AddMultilineNodeLines(current);
-        NextNode();
+    if (IsMultiline(node.value())) {
+        AddMultilineNodeLines(node.value());
+        Next();
         return PollLineQueue();
     }
 
-    if (TESIX_File::CharCount(GetNodeInbetween(current), '\n') > 1) {
-        AddPrevEmptyLines(current);
-        std::pair<TESIX_ColoredString, TSNode> line = GetLine(current);
-        line_queue.push_back(line.first);
-        if (Compare(current, end)) is_end = true;
-        current = line.second;
-        return PollLineQueue();
+    bool to_buffer = false;
+
+    if (TESIX_File::CharCount(GetNodeInbetween(last_token, node.value()), '\n') > 1) {
+        AddEmptyLines(last_token, node.value());
+        to_buffer = true;
     }
 
-    std::pair<TESIX_ColoredString, TSNode> line = GetLine(current);
-    if (Compare(current, end)) is_end = true;
-    current = line.second;
-    return line.first;
+    TESIX_ColoredString ret;
+
+    ret.Append(GetNodePrel(last_token, node.value()));
+    ret.Append(TESIX_ColorStringPair(GetNodeString(node.value()), GetNodeColor(node.value())));
+
+    node = Next();
+    if (!node.has_value()) return ret;
+    while (!IsLineStart(last_token, node.value())) {
+        ret.Append(GetNodeInbetween(last_token, node.value()));
+        ret.Append(TESIX_ColorStringPair(GetNodeString(node.value()), GetNodeColor(node.value())));
+
+        node = Next();
+        if (!node.has_value()) return ret;
+    }
+
+    if (to_buffer) {
+        line_queue.push_back(ret);
+        return PollLineQueue();
+    }
+    return ret;
 }
 
 void TESIX_SyntaxTree::Debug() {
-    /*while (!is_end) {
-        // std::cout << NextLine().GetStr() << "|\n";
+    for (uint32_t i = 0; i < 400; i++) {
         NextLine();
     }
-    current = start;
-    is_start = true;
-    is_end = false;*/
 
-    uint32_t count = 100000;
-    uint32_t sum_cursor = 0;
-    uint32_t sum_func = 0;
-
-    TSTreeCursor cursor = ts_tree_cursor_new(current);
-    for (uint32_t i = 0; i < count; i++) {
-        auto start = std::chrono::high_resolution_clock::now();
-        ts_tree_cursor_goto_next_sibling(&cursor);
-        ts_tree_cursor_reset(&cursor, current);
-        auto end = std::chrono::high_resolution_clock::now();
-        sum_cursor += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-    }
-
-    for (uint32_t i = 0; i < count; i++) {
-        auto start = std::chrono::high_resolution_clock::now();
-        ts_node_next_sibling(current);
-        auto end = std::chrono::high_resolution_clock::now();
-        sum_func += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-    }
-
-    std::cout << "cursor: " << sum_cursor / count << "\n";
-    std::cout << "func: " << sum_func / count << "\n";
-    std::cout << "ratio: " << (float)sum_func / (float)sum_cursor << "\n";
+    ts_tree_cursor_reset(&cur, root);
+    Next();
 }
 
 bool TESIX_SyntaxTree::IsMultiline(TSNode node) {
@@ -135,10 +122,6 @@ bool TESIX_SyntaxTree::IsLineStart(TSNode& prev, TSNode& cur) {
     else return false;
 }
 
-std::string TESIX_SyntaxTree::GetNodeString() {
-    return file->GetInterval(ts_node_start_byte(current), ts_node_end_byte(current) - 1);
-}
-
 std::string TESIX_SyntaxTree::GetNodeString(TSNode& node) {
     return file->GetInterval(ts_node_start_byte(node), ts_node_end_byte(node) - 1);
 }
@@ -155,8 +138,8 @@ std::string TESIX_SyntaxTree::GetNodeInbetween(TSNode& node) {
     return file->GetInterval(ts_node_end_byte(prev.value()), ts_node_start_byte(node) - 1);
 }
 
-std::string TESIX_SyntaxTree::GetLinePrel(TSNode& line_start) {
-    std::string inbetween = GetNodeInbetween(line_start);
+std::string TESIX_SyntaxTree::GetNodePrel(TSNode& prev, TSNode& node) {
+    std::string inbetween = GetNodeInbetween(prev, node);
 
     uint32_t index = inbetween.find_last_of('\n');
 
@@ -221,7 +204,7 @@ std::optional<TSNode> TESIX_SyntaxTree::GetNextNode(TSNode& node) {
 
     TSNode sibling = ts_node_next_sibling(node);
 
-    if (HasChildren(node)) {
+    if (ts_node_child_count(node) > 0) {
         ret = ts_node_child(node, 0);
     } else if (!ts_node_is_null(sibling)) {
         ret = sibling;
@@ -248,48 +231,35 @@ std::optional<TSNode> TESIX_SyntaxTree::GetNextNode(TSNode& node) {
 }
 
 std::optional<TSNode> TESIX_SyntaxTree::NextNode() {
-    std::optional<TSNode> next = GetNextNode(current);
+    TSNode cursor = Current();
 
-    if (!next.has_value()) return next;
-    if (Compare(next.value(), end)) is_end = true;
-
-    current = next.value();
-    is_start = false;
-
-    return std::optional<TSNode>(next);
-}
-
-std::optional<TSNode> TESIX_SyntaxTree::PrevNode() {
-    std::optional<TSNode> prev = GetPrevNode(current);
-
-    if (!prev.has_value()) return prev;
-    if (Compare(prev.value(), root)) is_start = true;
-
-    current = prev.value();
-    is_end = false;
-
-    return std::optional<TSNode>(prev);
-}
-
-bool TESIX_SyntaxTree::IsToken(TSNode& node) {
-    try {
-        return token_types.at(ts_node_type(node));
-    } catch (std::exception& e) {
-        throw std::runtime_error(ts_node_type(node));
+    if (ts_tree_cursor_goto_first_child(&cur)) {
+        return Current();
+    } else if (ts_tree_cursor_goto_next_sibling(&cur)) {
+        return Current();
+    } else {
+        ts_tree_cursor_goto_parent(&cur);
+        while (!ts_tree_cursor_goto_next_sibling(&cur)) {
+            ts_tree_cursor_goto_parent(&cur);
+        }
+        return Current();
     }
+
+    cursor = Current();
+    if (ts_node_is_missing(cursor)) {
+        errors.push_back(cursor);
+        return NextNode();
+    }
+
+    return std::optional<TSNode>();
 }
 
-bool TESIX_SyntaxTree::HasPrevSibling(TSNode& node) {
-    return !ts_node_is_null(ts_node_prev_sibling(node));
-}
-
-bool TESIX_SyntaxTree::HasNextSibling(TSNode& node) {
-    return !ts_node_is_null(ts_node_next_sibling(node));
-}
-
-bool TESIX_SyntaxTree::HasChildren(TSNode& node) {
-    if (ts_node_child_count(node) != 0) return true;
-    else return false;
+bool TESIX_SyntaxTree::IsToken(TSNode node) {
+    // try {
+    return token_types.at(ts_node_type(node));
+    // } catch (std::exception& e) {
+    //     throw std::runtime_error(ts_node_type(node));
+    // }
 }
 
 bool TESIX_SyntaxTree::Compare(TSNode& node1, TSNode& node2) {
@@ -300,7 +270,7 @@ bool TESIX_SyntaxTree::Compare(TSNode& node1, TSNode& node2) {
 TSNode TESIX_SyntaxTree::GetLowestLeftSideChild(TSNode& node) {
     TSNode cur = node;
 
-    while (HasChildren(cur)) {
+    while (ts_node_child_count(cur) > 0) {
         cur = ts_node_child(cur, 0);
     }
 
@@ -310,31 +280,14 @@ TSNode TESIX_SyntaxTree::GetLowestLeftSideChild(TSNode& node) {
 TSNode TESIX_SyntaxTree::GetLowestRightSideChild(TSNode& node) {
     TSNode cur = node;
 
-    while (HasChildren(cur)) {
-        cur = ts_node_child(cur, ts_node_child_count(cur) - 1);
+    uint32_t child_count = ts_node_child_count(cur);
+
+    while (child_count > 0) {
+        cur = ts_node_child(cur, child_count - 1);
+        child_count = ts_node_child_count(cur);
     }
 
     return cur;
-}
-
-TESIX_ColoredString TESIX_SyntaxTree::GetMultilineFirstLine(TSNode& node) {
-    std::string node_string = GetNodeString(node);
-
-    return TESIX_ColoredString(node_string.substr(0, node_string.find('\n')), GetNodeColor(node));
-}
-
-TSNode TESIX_SyntaxTree::GetNextLineStart(TSNode& node) {
-    std::optional<TSNode> search = GetNext(node);
-    if (!search.has_value()) {
-        return node;
-    }
-
-    while (!IsLineStart(search.value())) {
-        search = GetNext(search.value());
-        if (!search.has_value()) return node;
-    }
-
-    return search.value();
 }
 
 TESIX_Color TESIX_SyntaxTree::GetNodeColor(TSNode node) {
@@ -351,37 +304,8 @@ TESIX_Color TESIX_SyntaxTree::GetNodeColor(TSNode node) {
     }
 }
 
-std::pair<TESIX_ColoredString, TSNode> TESIX_SyntaxTree::GetLine(TSNode& node) {
-    std::optional<TSNode> cur = node;
-    TSNode last_cur;
-
-    if (IsMultiline(cur.value())) {
-        return std::pair<TESIX_ColoredString, TSNode>(GetMultilineFirstLine(node), GetNext(cur.value()).value());
-    }
-
-    TESIX_ColoredString ret;
-
-    ret.Append(GetLinePrel(cur.value()));
-    ret.Append(TESIX_ColorStringPair(GetNodeString(cur.value()), GetNodeColor(cur.value())));
-
-    last_cur = cur.value();
-    cur = GetNext(cur.value());
-    if (!cur.has_value()) return std::pair<TESIX_ColoredString, TSNode>(ret, last_cur);
-
-    while (!IsLineStart(last_cur, cur.value())) {
-        ret.Append(GetNodeInbetween(last_cur, cur.value()));
-        ret.Append(TESIX_ColorStringPair(GetNodeString(cur.value()), GetNodeColor(cur.value())));
-
-        last_cur = cur.value();
-        cur = GetNext(cur.value());
-        if (!cur.has_value()) return std::pair<TESIX_ColoredString, TSNode>(ret, last_cur);
-    }
-
-    return std::pair<TESIX_ColoredString, TSNode>(ret, cur.value());
-}
-
-void TESIX_SyntaxTree::AddPrevEmptyLines(TSNode& node) {
-    std::string prel = GetNodeInbetween(node);
+void TESIX_SyntaxTree::AddEmptyLines(TSNode& prev, TSNode& node) {
+    std::string prel = GetNodeInbetween(prev, node);
 
     uint32_t index = prel.find('\n');
     uint32_t next;
@@ -398,9 +322,7 @@ void TESIX_SyntaxTree::AddMultilineNodeLines(TSNode& node) {
     std::string node_string = GetNodeString(node);
     TESIX_Color color = GetNodeColor(node);
 
-    line_queue.push_back(GetMultilineFirstLine(node));
-
-    uint32_t index = node_string.find('\n');
+    uint32_t index = 0;
     uint32_t next;
 
     while (true) {
@@ -413,28 +335,6 @@ void TESIX_SyntaxTree::AddMultilineNodeLines(TSNode& node) {
             index = next;
         }
     }
-}
-
-TSNode TESIX_SyntaxTree::GetLineStart(TSNode& node) {
-    if (IsLineStart(node)) return node;
-
-    std::optional<TSNode> search = GetPrev(node);
-
-    if (!search.has_value()) {
-        if (IsToken(node)) return node;
-        else return GetNext(node).value();
-    }
-
-    while (!IsLineStart(search.value())) {
-        search = GetPrev(search.value());
-
-        if (!search.has_value()) {
-            if (IsToken(node)) return node;
-            else return GetNext(node).value();
-        }
-    }
-
-    return search.value();
 }
 
 TESIX_ColoredString TESIX_SyntaxTree::PollLineQueue() {

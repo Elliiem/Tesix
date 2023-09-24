@@ -18,12 +18,12 @@
 #include "TESIX_SyntaxTree.h"
 
 int main(int argc, char** argv) {
-    initscr();
+    /*initscr();
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
 
-    std::string file_path = "/home/elliem/Dev/Programs/1st-Party/cpp/Tesix/src/TESIX_SyntaxTree.cpp";
+    std::string file_path = "/home/elliem/Dev/Programs/1st-Party/cpp/Tesix/sample_files/test.txt";
     TESIX_File file(file_path);
 
     TESIX_FileWindow window(200, 50, 0, 0);
@@ -43,12 +43,14 @@ int main(int argc, char** argv) {
         window.Action(key);
     }
 
-    endwin();
+    endwin();*/
 
     // ._. // ;-;
+    std::string file_path = "/home/elliem/Dev/Programs/1st-Party/cpp/Tesix/sample_files/test.txt";
+    TESIX_File file(file_path);
 
     TESIX_SyntaxTree foo(&file);
-    /*uint32_t sum = 0;
+    uint32_t sum = 0;
     uint32_t count = 10;
 
     for (uint32_t i = 0; i < count; i++) {
@@ -58,9 +60,7 @@ int main(int argc, char** argv) {
         sum += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     }
 
-    std::cout << sum / count << "\n";*/
-
-    foo.Debug();
+    std::cout << sum / count << "\n";
 
     return 0;
 }
