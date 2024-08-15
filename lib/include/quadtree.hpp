@@ -71,35 +71,22 @@ struct Box {
     }
 };
 
+template<AnyDiagonal diagonal>
+inline Box childBox(const Box& parent, const size_t x, const size_t y) {
+    constexpr bool strong_horizontal = is_strong_direction<typename diagonal::hor>::value;
+    constexpr bool strong_vertical = is_strong_direction<typename diagonal::vert>::value;
+
+    return {
+        ._x = parent._x + (strong_horizontal ? x : 0),
+        ._y = parent._y + (strong_vertical ? y : 0),
+        ._width = strong_horizontal ? x : parent._width - x,
+        ._height = strong_vertical ? y : parent._height - y,
+    };
+}
+
 template<VerticalDirection vert, HorizontalDirection hor>
-inline Box childBox(const Box& parent, const size_t x, const size_t y);
-
-template<>
-inline Box childBox<Direction::TOP, Direction::LEFT>(const Box& parent, size_t x, size_t y) {
-    assert(parent._width > x && parent._height > y);
-
-    return {._x = parent._x, ._y = parent._y, ._width = x, ._height = y};
-}
-
-template<>
-inline Box childBox<Direction::TOP, Direction::RIGHT>(const Box& parent, size_t x, size_t y) {
-    assert(parent._width > x && parent._height > y);
-
-    return {._x = parent._x + x, ._y = parent._y, ._width = parent._width - x, ._height = y};
-}
-
-template<>
-inline Box childBox<Direction::BOTTOM, Direction::LEFT>(const Box& parent, size_t x, size_t y) {
-    assert(parent._width > x && parent._height > y);
-
-    return {._x = parent._x, ._y = parent._y + y, ._width = x, ._height = parent._height - y};
-}
-
-template<>
-inline Box childBox<Direction::BOTTOM, Direction::RIGHT>(const Box& parent, size_t x, size_t y) {
-    assert(parent._width > x && parent._height > y);
-
-    return {._x = parent._x + x, ._y = parent._y + y, ._width = parent._width - x, ._height = parent._height - y};
+inline Box childBox(const Box& parent, const size_t x, const size_t y) {
+    return childBox<Diagonal<vert, hor>>(parent, x, y);
 }
 
 enum QuadType {
@@ -168,8 +155,8 @@ struct Quad {
     inline Quad& child() {
         assert(_type == BRANCH);
 
-        constexpr size_t horizontal_index = std::is_same_v<typename diagonal::hor, Direction::RIGHT>;
-        constexpr size_t vertical_index = 2 * std::is_same_v<typename diagonal::vert, Direction::BOTTOM>;
+        constexpr size_t horizontal_index = is_strong_direction<typename diagonal::hor>::value ? 0 : 1;
+        constexpr size_t vertical_index = is_strong_direction<typename diagonal::vert>::value ? 0 : 2;
 
         return branch()._children[vertical_index + horizontal_index];
     }
@@ -219,8 +206,8 @@ struct Quad {
         using opposite_axis = axis_info<axis>::opposite;
 
         return {
-            ._first = child<dir, typename axis_info<opposite_axis>::strong>(),
-            ._second = child<dir, typename axis_info<opposite_axis>::weak>(),
+            ._first = child<Diagonal<dir, typename axis_info<opposite_axis>::strong>>(),
+            ._second = child<Diagonal<dir, typename axis_info<opposite_axis>::weak>>(),
         };
     }
 
